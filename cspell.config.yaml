@@ -1,0 +1,19 @@
+version: "0.2"
+useGitignore: true
+ignorePaths:
+  - pnpm-lock.yaml
+dictionaryDefinitions:
+  - name: custom-dictionary
+    path: ./.cspell/custom-dictionary.txt
+    addWords: true
+dictionaries:
+  - custom-dictionary
+  - node
+  - npm
+  - typescript
+  - softwareTerms
+  - filetypes
+  - fonts
+words: []
+ignoreWords: []
+import: []

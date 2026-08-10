@@ -1,0 +1,3 @@
+logomark
+piggon
+unrs-resolver

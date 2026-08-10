@@ -17,6 +17,7 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   enabled:
+    - cspell@10.0.1
     - eslint@10.8.1
     - grype@0.110.0
     - checkov@3.3.9
