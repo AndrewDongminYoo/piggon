@@ -104,11 +104,15 @@ create table public.visits (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, restaurant_id),
-  check (
+  constraint visits_evidence_matches_owner_check check (
     (
       evidence_type = 'photo'
       and photo_path is not null
       and instagram_url is null
+      and split_part(photo_path, '/', 1) = user_id::text
+      and split_part(photo_path, '/', 2) = restaurant_id::text
+      and array_length(string_to_array(photo_path, '/'), 1) = 3
+      and split_part(photo_path, '/', 3) ~ '^[A-Za-z0-9_-]+\.(jpg|png|webp)$'
     )
     or (
       evidence_type = 'instagram'

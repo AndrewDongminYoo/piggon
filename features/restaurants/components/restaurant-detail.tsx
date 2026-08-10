@@ -3,7 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { GoogleSignIn } from "@/components/auth/google-sign-in";
 import { StampBadge } from "@/components/ui/stamp-badge";
+import { ReviewList } from "@/features/visits/components/review-list";
+import {
+  ProfileForm,
+  VisitForm,
+} from "@/features/visits/components/visit-form";
+import type {
+  PublicVisit,
+  ViewerProfile,
+  ViewerVisit,
+} from "@/features/visits/queries";
 
 import { getAvailabilityState } from "../filters";
 import type {
@@ -14,10 +25,16 @@ import type {
 import { VideoCard } from "./video-card";
 
 type RestaurantDetailProps = {
+  community?: PublicVisit[];
   currentDate: string;
   onBack?: () => void;
   restaurant: RestaurantDetailData;
   variant?: "page" | "panel";
+  viewer?: {
+    profile: ViewerProfile | null;
+    userId: string;
+    visit: ViewerVisit | null;
+  } | null;
 };
 
 type CopyState = "idle" | "copied" | "error";
@@ -91,10 +108,12 @@ function getSafeHttpsUrl(value: string | null): string | null {
 }
 
 export function RestaurantDetail({
+  community,
   currentDate,
   onBack,
   restaurant,
   variant = "page",
+  viewer,
 }: RestaurantDetailProps) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const availability = getAvailabilityState(
@@ -276,6 +295,48 @@ export function RestaurantDetail({
               <VideoCard key={video.id} video={video} />
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {viewer !== undefined ? (
+        <section className="detail-section detail-visit-form">
+          <span>MY PIZZA STAMP</span>
+          <SectionTitle>나도 먹어봤어요</SectionTitle>
+          {viewer === null ? (
+            <div className="visit-login-callout">
+              <p>
+                Google 로그인 후 방문 사진이나 공개 Instagram 게시물로 피자
+                발자국을 남길 수 있습니다.
+              </p>
+              <GoogleSignIn nextPath={`/restaurants/${restaurant.slug}`} />
+            </div>
+          ) : viewer.profile === null ? (
+            <div className="visit-profile-callout">
+              <p>방문 인증에 공개될 표시 이름을 먼저 정해 주세요.</p>
+              <ProfileForm />
+            </div>
+          ) : (
+            <>
+              <p className="visit-form-intro">
+                {viewer.profile.displayName}님의 인증은 리워드나 자동 판정 없이
+                커뮤니티 기록으로 공개됩니다.
+              </p>
+              <VisitForm
+                currentDate={currentDate}
+                existingVisit={viewer.visit}
+                restaurantId={restaurant.id}
+                userId={viewer.userId}
+              />
+            </>
+          )}
+        </section>
+      ) : null}
+
+      {community !== undefined ? (
+        <section className="detail-section detail-community">
+          <span>COMMUNITY CRUST LOG</span>
+          <SectionTitle>피자 팬들의 방문 인증 {community.length}</SectionTitle>
+          <ReviewList visits={community} />
         </section>
       ) : null}
     </article>

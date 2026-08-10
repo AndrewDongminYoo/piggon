@@ -1,6 +1,6 @@
 begin;
 
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -92,6 +92,17 @@ select results_eq(
     returning 1$$,
   $$select 1 where false$$,
   'a user cannot update another visit'
+);
+
+select throws_ok(
+  $$update public.visits
+    set evidence_type = 'photo',
+        photo_path = '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+        instagram_url = null
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '23514',
+  null,
+  'an owner cannot attach another users storage path'
 );
 
 select lives_ok(

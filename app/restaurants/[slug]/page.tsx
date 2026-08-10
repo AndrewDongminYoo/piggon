@@ -4,6 +4,12 @@ import { cache } from "react";
 
 import { RestaurantDetail } from "@/features/restaurants/components/restaurant-detail";
 import { getPublishedRestaurantBySlug } from "@/features/restaurants/queries";
+import {
+  getPublicRestaurantCommunity,
+  getViewerProfile,
+  getViewerVisit,
+} from "@/features/visits/queries";
+import { createClient } from "@/lib/supabase/server";
 
 const getRestaurant = cache(getPublishedRestaurantBySlug);
 
@@ -44,11 +50,29 @@ export default async function RestaurantPage({
     notFound();
   }
 
+  const supabase = await createClient();
+  const [{ data: authData }, community] = await Promise.all([
+    supabase.auth.getUser(),
+    getPublicRestaurantCommunity(restaurant.id),
+  ]);
+  const viewer = authData.user
+    ? await Promise.all([
+        getViewerProfile(authData.user.id),
+        getViewerVisit(restaurant.id, authData.user.id),
+      ]).then(([profile, visit]) => ({
+        profile,
+        userId: authData.user.id,
+        visit,
+      }))
+    : null;
+
   return (
     <main className="restaurant-detail-page">
       <RestaurantDetail
+        community={community}
         currentDate={getCurrentSeoulDate()}
         restaurant={restaurant}
+        viewer={viewer}
       />
     </main>
   );
