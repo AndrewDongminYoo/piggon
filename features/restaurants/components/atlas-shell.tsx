@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -7,14 +8,18 @@ import { StampBadge } from "@/components/ui/stamp-badge";
 import { getPublicEnv } from "@/lib/env/public";
 
 import { filterRestaurants } from "../filters";
-import type { RestaurantFilter, RestaurantSummary } from "../types";
+import type {
+  RestaurantDetail as RestaurantDetailData,
+  RestaurantFilter,
+} from "../types";
+import { RestaurantDetail } from "./restaurant-detail";
 import { RestaurantFilters } from "./restaurant-filters";
 import { RestaurantList } from "./restaurant-list";
 import { RestaurantMap } from "./restaurant-map";
 
 type AtlasShellProps = {
   currentDate: string;
-  restaurants: RestaurantSummary[];
+  restaurants: RestaurantDetailData[];
 };
 
 type MobileView = "map" | "list";
@@ -45,6 +50,9 @@ export function AtlasShell({ currentDate, restaurants }: AtlasShellProps) {
   )
     ? selectedRestaurantId
     : null;
+  const selectedRestaurant = filteredRestaurants.find(
+    (restaurant) => restaurant.id === visibleSelectedRestaurantId,
+  );
   const handleSelect = useCallback((restaurantId: string) => {
     setSelectedRestaurantId(restaurantId);
   }, []);
@@ -118,18 +126,45 @@ export function AtlasShell({ currentDate, restaurants }: AtlasShellProps) {
             restaurants={filteredRestaurants}
             selectedRestaurantId={visibleSelectedRestaurantId}
           />
+          {selectedRestaurant ? (
+            <div className="mobile-restaurant-sheet">
+              <button
+                aria-label="선택한 맛집 닫기"
+                onClick={() => setSelectedRestaurantId(null)}
+                type="button"
+              >
+                ×
+              </button>
+              <span>{selectedRestaurant.region}</span>
+              <strong>{selectedRestaurant.name}</strong>
+              <Link
+                href={`/restaurants/${encodeURIComponent(selectedRestaurant.slug)}`}
+              >
+                상세 보기 →
+              </Link>
+            </div>
+          ) : null}
         </section>
         <aside
           className="atlas-list-panel"
           data-mobile-active={mobileView === "list"}
         >
-          <RestaurantList
-            currentDate={currentDate}
-            onSelect={handleSelect}
-            restaurants={filteredRestaurants}
-            selectedRestaurantId={visibleSelectedRestaurantId}
-            totalCount={restaurants.length}
-          />
+          {selectedRestaurant ? (
+            <RestaurantDetail
+              currentDate={currentDate}
+              onBack={() => setSelectedRestaurantId(null)}
+              restaurant={selectedRestaurant}
+              variant="panel"
+            />
+          ) : (
+            <RestaurantList
+              currentDate={currentDate}
+              onSelect={handleSelect}
+              restaurants={filteredRestaurants}
+              selectedRestaurantId={visibleSelectedRestaurantId}
+              totalCount={restaurants.length}
+            />
+          )}
         </aside>
       </div>
     </main>

@@ -54,11 +54,11 @@ function matchesSearch(restaurant: RestaurantSummary, search: string): boolean {
     );
 }
 
-export function filterRestaurants(
-  restaurants: RestaurantSummary[],
+export function filterRestaurants<T extends RestaurantSummary>(
+  restaurants: T[],
   filter: RestaurantFilter,
   currentDate: string,
-): RestaurantSummary[] {
+): T[] {
   return restaurants.filter((restaurant) => {
     const availability = getAvailabilityState(
       restaurant.availabilityPeriods,

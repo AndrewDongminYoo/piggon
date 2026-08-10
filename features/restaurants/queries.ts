@@ -4,11 +4,7 @@ import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/supabase/server";
 
 import { filterRestaurants } from "./filters";
-import type {
-  RestaurantDetail,
-  RestaurantFilter,
-  RestaurantSummary,
-} from "./types";
+import type { RestaurantDetail, RestaurantFilter } from "./types";
 
 const RESTAURANT_SELECT = `
   id,
@@ -129,7 +125,7 @@ function mapRestaurant(row: RestaurantRow): RestaurantDetail {
 export async function listPublishedRestaurants(
   filter: RestaurantFilter = {},
   currentDate = new Date().toISOString().slice(0, 10),
-): Promise<RestaurantSummary[]> {
+): Promise<RestaurantDetail[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("restaurants")
