@@ -406,7 +406,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      upsert_video_with_restaurants: {
+        Args: {
+          p_canonical_url: string;
+          p_links: Json;
+          p_metadata_fetch_state: string;
+          p_thumbnail_url: string;
+          p_title: string;
+          p_youtube_video_id: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       publication_status: "draft" | "published" | "archived";
