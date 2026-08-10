@@ -1552,6 +1552,522 @@ textarea:focus-visible {
   font-size: 3rem;
 }
 
+.admin-shell {
+  display: grid;
+  gap: 28px;
+}
+
+.admin-shell__header {
+  align-items: center;
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  color: var(--paper);
+  display: flex;
+  gap: 28px;
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+
+.admin-shell__header > div {
+  display: grid;
+}
+
+.admin-shell__header span {
+  color: var(--cheese);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.admin-shell__header strong {
+  font-family: var(--font-piggon-display), sans-serif;
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1;
+  margin-top: 5px;
+}
+
+.admin-nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-nav a,
+.admin-nav > span {
+  border: 2px solid var(--paper);
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.admin-nav a:hover {
+  background: var(--cheese);
+  color: var(--ink);
+}
+
+.admin-nav > span {
+  border-color: #70685f;
+  color: #aaa096;
+}
+
+.admin-page {
+  display: grid;
+  gap: 24px;
+  margin: 0 auto;
+  max-width: 1180px;
+  width: 100%;
+}
+
+.admin-page-heading {
+  align-items: end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.admin-page-heading > div > span,
+.admin-form-section__heading span {
+  color: var(--tomato-dark);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.admin-page-heading h1 {
+  font-family: var(--font-piggon-display), sans-serif;
+  font-size: clamp(2.8rem, 7vw, 5.4rem);
+  font-weight: 400;
+  line-height: 0.95;
+  margin: 14px 0 12px;
+}
+
+.admin-page-heading p {
+  color: var(--muted-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.admin-page-heading > a {
+  background: var(--cheese);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 11px 14px;
+  text-decoration: none;
+}
+
+.admin-stats {
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+}
+
+.admin-stats div {
+  background: var(--paper);
+  padding: 15px;
+  text-align: center;
+}
+
+.admin-stats div + div {
+  border-left: 3px solid var(--ink);
+}
+
+.admin-stats dt {
+  color: var(--muted-ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.admin-stats dd {
+  font-family: var(--font-piggon-display), sans-serif;
+  font-size: 2.3rem;
+  line-height: 1;
+  margin: 6px 0 0;
+}
+
+.admin-restaurant-list {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-restaurant-list article {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  display: grid;
+  min-width: 0;
+  padding: 17px;
+}
+
+.admin-restaurant-list article > div {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.admin-status {
+  border: 2px solid var(--ink);
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 4px 6px;
+}
+
+.admin-status--published {
+  background: var(--basil);
+  color: var(--paper);
+}
+
+.admin-status--draft {
+  background: var(--cheese);
+}
+
+.admin-status--archived {
+  background: #d8c6ae;
+}
+
+.admin-restaurant-list small {
+  color: var(--muted-ink);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.admin-restaurant-list h2 {
+  font-family: var(--font-piggon-display), sans-serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 20px 0 8px;
+}
+
+.admin-restaurant-list p {
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.admin-restaurant-list a {
+  color: var(--basil);
+  font-size: 0.7rem;
+  font-weight: 900;
+  margin-top: 24px;
+  text-underline-offset: 4px;
+}
+
+.restaurant-admin-editor,
+.restaurant-admin-form {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-status-controls {
+  align-items: center;
+  background: var(--paper-deep);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 13px;
+}
+
+.admin-status-controls > div {
+  display: grid;
+  margin-right: auto;
+}
+
+.admin-status-controls span {
+  color: var(--muted-ink);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.admin-status-controls strong {
+  font-size: 0.8rem;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+.admin-status-controls button,
+.admin-form-section__heading--action button,
+.admin-place-picker__search button,
+.admin-remove-row {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  min-height: 38px;
+  padding: 7px 10px;
+}
+
+.admin-status-controls form:first-of-type button {
+  background: var(--tomato);
+  color: var(--paper);
+}
+
+.admin-action-message {
+  flex-basis: 100%;
+  font-size: 0.72rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.admin-action-message--error {
+  color: var(--tomato-dark);
+}
+
+.admin-action-message--success {
+  color: var(--basil);
+}
+
+.admin-form-section {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  display: grid;
+  gap: 20px;
+  padding: clamp(18px, 4vw, 32px);
+}
+
+.admin-form-section__heading {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 14px;
+}
+
+.admin-form-section__heading h2 {
+  font-family: var(--font-piggon-display), sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1;
+  margin: 7px 0 0;
+}
+
+.admin-form-section__heading--action {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.admin-form-section__heading--action button {
+  background: var(--cheese);
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-form-grid label,
+.admin-repeat-row label,
+.admin-place-picker__search {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-form-grid label > span,
+.admin-repeat-row label > span,
+.admin-place-picker__search > label {
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea,
+.admin-repeat-row input,
+.admin-place-picker input {
+  background: #fffdf6;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-weight: 700;
+  min-height: 43px;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.admin-form-grid textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.admin-form-grid__wide,
+.admin-repeat-row__wide {
+  grid-column: 1 / -1;
+}
+
+.admin-place-picker {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-place-picker__search > div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.admin-place-picker__search button {
+  background: var(--cheese);
+}
+
+.admin-place-picker__notice {
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.admin-place-results {
+  border: 2px solid var(--ink);
+  display: grid;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.admin-place-results button {
+  background: #fffdf6;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  padding: 11px;
+  text-align: left;
+}
+
+.admin-place-results button + button {
+  border-top: 1px solid var(--ink);
+}
+
+.admin-place-results button:hover {
+  background: var(--paper-deep);
+}
+
+.admin-place-results strong {
+  font-size: 0.76rem;
+}
+
+.admin-place-results span {
+  color: var(--muted-ink);
+  font-size: 0.66rem;
+  margin-top: 4px;
+}
+
+.admin-place-selection {
+  border: 2px solid var(--ink);
+  display: grid;
+  grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1.35fr);
+}
+
+.admin-place-selection > div:first-child {
+  align-content: center;
+  background: var(--paper-deep);
+  border-right: 2px solid var(--ink);
+  display: grid;
+  padding: 18px;
+}
+
+.admin-place-selection span,
+.admin-place-selection small {
+  color: var(--muted-ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 7px;
+}
+
+.admin-place-selection small {
+  color: var(--basil);
+  font-weight: 900;
+}
+
+.admin-place-map {
+  min-height: 280px;
+}
+
+.admin-location-fields {
+  border-top: 2px dashed var(--ink);
+  padding-top: 18px;
+}
+
+.admin-repeat-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-repeat-row {
+  background: var(--paper-deep);
+  border: 2px solid var(--ink);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 15px;
+}
+
+.admin-remove-row {
+  background: var(--tomato);
+  color: var(--paper);
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+.admin-form-help {
+  color: var(--muted-ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.admin-form-actions {
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  bottom: 12px;
+  box-shadow: var(--shadow-small);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 12px;
+  position: sticky;
+  z-index: 20;
+}
+
+.admin-form-actions button {
+  background: var(--paper);
+  border: 3px solid var(--paper);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 9px 14px;
+}
+
+.admin-form-actions button:last-child {
+  background: var(--cheese);
+  border-color: var(--cheese);
+  color: var(--ink);
+}
+
+.admin-form-actions button:disabled,
+.admin-status-controls button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .route-not-found {
   align-items: center;
   background: var(--paper);
@@ -2043,6 +2559,36 @@ textarea:focus-visible {
 
   .profile-form__row {
     grid-template-columns: 1fr;
+  }
+
+  .admin-shell__header,
+  .admin-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-restaurant-list,
+  .admin-form-grid,
+  .admin-repeat-row,
+  .admin-place-selection {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-place-selection > div:first-child {
+    border-bottom: 2px solid var(--ink);
+    border-right: 0;
+  }
+
+  .admin-form-grid__wide,
+  .admin-repeat-row__wide,
+  .admin-remove-row {
+    grid-column: 1;
+  }
+
+  .admin-form-actions {
+    bottom: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
