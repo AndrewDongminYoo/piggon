@@ -45,9 +45,9 @@ values (
 set local role anon;
 
 select results_eq(
-  $$select count(*) from public.restaurants$$,
-  array[1::bigint],
-  'anonymous users see only published restaurants'
+  $$select slug from public.restaurants where slug in ('draft-test', 'published-test') order by slug$$,
+  array['published-test'::text],
+  'anonymous users see only the published restaurant in the test fixture'
 );
 
 select results_eq(
