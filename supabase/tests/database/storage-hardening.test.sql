@@ -1,6 +1,6 @@
 begin;
 
-select plan(37);
+select plan(38);
 
 select has_function(
   'public',
@@ -106,6 +106,25 @@ select volatility_is(
   'current_user_unreferenced_evidence_count',
   'volatile',
   'the quota helper is not cached across a statement'
+);
+
+-- Asserted as a set rather than one at a time, because the defect was that one
+-- predicate stayed `stable` while its siblings were converted: it answered from
+-- the snapshot the statement began with, so it could match an old version while
+-- the volatile predicate beside it saw the object after the overwrite.
+select is_empty(
+  $$select proname
+    from pg_proc
+    join pg_namespace on pg_namespace.oid = pg_proc.pronamespace
+    where pg_namespace.nspname = 'public'
+      and proname in (
+        'current_user_owns_visit_evidence',
+        'current_user_unreferenced_evidence_count',
+        'visit_evidence_is_referenced',
+        'visit_evidence_is_validated'
+      )
+      and provolatile <> 'v'$$,
+  'every policy-evaluated evidence predicate reads after the lock'
 );
 
 -- Proves the count is serialized rather than merely correct: without the per-user
