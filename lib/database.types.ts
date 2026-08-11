@@ -354,6 +354,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      visit_photo_cleanup_jobs: {
+        Row: {
+          created_at: string;
+          last_error: string;
+          path: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          last_error: string;
+          path: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          last_error?: string;
+          path?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       visits: {
         Row: {
           created_at: string;
@@ -407,6 +431,7 @@ export type Database = {
     };
     Functions: {
       current_user_has_profile: { Args: never; Returns: boolean };
+      current_user_visit_evidence_count: { Args: never; Returns: number };
       save_restaurant_with_attributes: {
         Args: {
           p_availability_periods: Json;

@@ -7,6 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 
 import { getReviewMutation } from "./review-mutation";
 import {
+  cleanupStoredVisitPhoto,
+  retryStoredVisitPhotoCleanup,
+} from "./photo-cleanup-server";
+import {
   deleteReviewInputSchema,
   deleteVisitInputSchema,
   profileInputSchema,
@@ -168,6 +172,7 @@ export async function upsertVisit(
   formData: FormData,
 ): Promise<VisitActionState> {
   const user = await requireUser();
+  await retryStoredVisitPhotoCleanup(user.id);
   const photoPath = getText(formData, "photoPath") || null;
   const parsed = visitInputSchema.safeParse({
     evidenceType: getText(formData, "evidenceType"),
@@ -297,13 +302,16 @@ export async function upsertVisit(
     };
   }
 
+  let photoCleanupPending = false;
   if (
     previousVisit?.photo_path &&
     previousVisit.photo_path !== visit.photo_path
   ) {
-    await supabase.storage
-      .from(VISIT_EVIDENCE_BUCKET)
-      .remove([previousVisit.photo_path]);
+    const cleanupResult = await cleanupStoredVisitPhoto(
+      previousVisit.photo_path,
+      user.id,
+    );
+    photoCleanupPending = !cleanupResult;
   }
 
   const reviewMutation = getReviewMutation({
@@ -352,7 +360,9 @@ export async function upsertVisit(
 
   refreshVisitPages(restaurant.slug);
   return {
-    message: "방문 인증을 저장했습니다.",
+    message: photoCleanupPending
+      ? "방문 인증은 저장했고 이전 사진 정리를 재시도하고 있습니다."
+      : "방문 인증을 저장했습니다.",
     photoPath: ownedVisit.photo_path,
     status: "success",
     visitId: ownedVisit.id,
@@ -420,6 +430,7 @@ export async function deleteVisit(
   formData: FormData,
 ): Promise<VisitActionState> {
   const user = await requireUser();
+  await retryStoredVisitPhotoCleanup(user.id);
   const parsed = deleteVisitInputSchema.safeParse({
     visitId: getText(formData, "visitId"),
   });
@@ -456,10 +467,7 @@ export async function deleteVisit(
 
   let cleanupFailed = false;
   if (visit.photo_path) {
-    const { error: storageError } = await supabase.storage
-      .from(VISIT_EVIDENCE_BUCKET)
-      .remove([visit.photo_path]);
-    cleanupFailed = Boolean(storageError);
+    cleanupFailed = !(await cleanupStoredVisitPhoto(visit.photo_path, user.id));
   }
 
   if (restaurant) {
