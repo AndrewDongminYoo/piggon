@@ -354,6 +354,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      visit_evidence_validations: {
+        Row: {
+          object_version: string;
+          path: string;
+          user_id: string;
+          validated_at: string;
+        };
+        Insert: {
+          object_version: string;
+          path: string;
+          user_id: string;
+          validated_at?: string;
+        };
+        Update: {
+          object_version?: string;
+          path?: string;
+          user_id?: string;
+          validated_at?: string;
+        };
+        Relationships: [];
+      };
       visit_moderation_marks: {
         Row: {
           created_at: string;
@@ -484,6 +505,10 @@ export type Database = {
         Returns: string[];
       };
       lock_visit_evidence: { Args: { p_user_id: string }; Returns: undefined };
+      record_visit_evidence_validation: {
+        Args: { p_path: string; p_user_id: string };
+        Returns: boolean;
+      };
       save_restaurant_with_attributes: {
         Args: {
           p_availability_periods: Json;
@@ -509,6 +534,10 @@ export type Database = {
         Returns: string;
       };
       visit_evidence_is_referenced: {
+        Args: { p_path: string };
+        Returns: boolean;
+      };
+      visit_evidence_is_validated: {
         Args: { p_path: string };
         Returns: boolean;
       };

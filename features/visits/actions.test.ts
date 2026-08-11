@@ -19,6 +19,9 @@ const {
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("./evidence-validation-server", () => ({
+  recordValidatedVisitEvidence: vi.fn(async () => true),
+}));
 vi.mock("@/lib/auth/require-user", () => ({ requireUser }));
 vi.mock("./photo-cleanup-server", () => ({
   cleanupStoredVisitPhoto,

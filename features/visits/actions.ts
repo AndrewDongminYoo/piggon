@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/require-user";
 import { createClient } from "@/lib/supabase/server";
 
+import { recordValidatedVisitEvidence } from "./evidence-validation-server";
 import { getReviewMutation } from "./review-mutation";
 import {
   cleanupStoredVisitPhoto,
@@ -264,6 +265,16 @@ export async function upsertVisit(
     if (!mediaType || !pathMatchesMediaType(parsed.data.photoPath, mediaType)) {
       return {
         message: "JPEG, PNG 또는 WebP 사진만 사용할 수 있습니다.",
+        photoPath: parsed.data.photoPath,
+        status: "error",
+      };
+    }
+
+    // The signature check above is application code, so the write policy cannot
+    // see it. Recording the result is what lets the policy require it.
+    if (!(await recordValidatedVisitEvidence(parsed.data.photoPath, user.id))) {
+      return {
+        message: "업로드한 사진을 확인하지 못했습니다.",
         photoPath: parsed.data.photoPath,
         status: "error",
       };

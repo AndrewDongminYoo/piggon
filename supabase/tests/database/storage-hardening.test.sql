@@ -1,6 +1,6 @@
 begin;
 
-select plan(32);
+select plan(36);
 
 select has_function(
   'public',
@@ -176,6 +176,49 @@ select throws_ok(
   'a photo visit needs an uploaded object at its path'
 );
 
+-- Uploading is not proving. The bytes are validated by the server, which records
+-- what it inspected; without that record the same upload is not attachable.
+select throws_ok(
+  $$insert into public.visits (
+      user_id,
+      restaurant_id,
+      visited_on,
+      evidence_type,
+      photo_path
+    )
+    values (
+      '44444444-4444-4444-4444-444444444444',
+      'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      current_date,
+      'photo',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
+    )$$,
+  '42501',
+  null,
+  'an uploaded object is not attachable until the server validates it'
+);
+
+reset role;
+
+select ok(
+  public.record_visit_evidence_validation(
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp',
+    '44444444-4444-4444-4444-444444444444'
+  ),
+  'the server can record what it validated'
+);
+
+select ok(
+  public.record_visit_evidence_validation(
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp',
+    '44444444-4444-4444-4444-444444444444'
+  ),
+  'the server can record a validated replacement'
+);
+
+set local role authenticated;
+set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444444';
+
 insert into public.visits (
   user_id,
   restaurant_id,
@@ -322,6 +365,22 @@ select ok(
       and policyname = 'users delete their visit evidence'
   ),
   'owner deletion is gated on the reference check'
+);
+
+-- The validation record is bound to the object version, so replacing the bytes
+-- behind a validated path invalidates it. Otherwise a caller could have valid
+-- bytes validated, overwrite them, and keep the record.
+-- Run as owner rather than service_role: visit_evidence_is_validated is granted
+-- to authenticated only, since the policy is its only caller.
+update storage.objects
+set version = 'overwritten'
+where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp';
+
+select ok(
+  not public.visit_evidence_is_validated(
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
+  ),
+  'replacing the bytes invalidates what the server validated'
 );
 
 -- Deleting an object and attaching that path to a visit are checked by different
