@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { StampBadge } from "@/components/ui/stamp-badge";
 import { ProfileForm } from "@/features/visits/components/visit-form";
 import { VisitCard } from "@/features/visits/components/visit-card";
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MyPizzaPage() {
-  const user = await requireUser();
+  const user = await requireUser("/me");
   const [profile, collection] = await Promise.all([
     getViewerProfile(user.id),
     listUserCollection(user.id),
@@ -40,6 +41,7 @@ export default async function MyPizzaPage() {
       <section className="collection-profile paper-panel">
         <h2>커뮤니티 이름</h2>
         <ProfileForm displayName={profile?.displayName} />
+        <SignOutButton />
       </section>
 
       <section className="collection-list-section">

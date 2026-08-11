@@ -1152,6 +1152,27 @@ textarea:focus-visible {
   gap: 9px;
 }
 
+.sign-out-button {
+  background: var(--paper-deep);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  font-weight: 900;
+  justify-self: start;
+  min-height: 40px;
+  padding: 7px 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.collection-profile .sign-out-button {
+  margin-top: 18px;
+}
+
+.sign-out-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .profile-form > label {
   font-size: 0.78rem;
   font-weight: 900;

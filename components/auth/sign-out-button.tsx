@@ -18,7 +18,12 @@ export function SignOutButton() {
   }
 
   return (
-    <button disabled={isPending} onClick={handleSignOut} type="button">
+    <button
+      className="sign-out-button"
+      disabled={isPending}
+      onClick={handleSignOut}
+      type="button"
+    >
       {isPending ? "로그아웃 중…" : "로그아웃"}
     </button>
   );

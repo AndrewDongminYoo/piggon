@@ -21,3 +21,11 @@ export function getSafeNextPath(value: string | null): string {
     return "/";
   }
 }
+
+export function getLoginPath(nextPath: string): string {
+  const searchParams = new URLSearchParams({
+    next: getSafeNextPath(nextPath),
+  });
+
+  return `/auth/login?${searchParams.toString()}`;
+}
