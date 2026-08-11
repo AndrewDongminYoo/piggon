@@ -522,11 +522,16 @@ export async function deleteVisit(
     supabase,
     visit.restaurant_id,
   );
-  const { error } = await supabase
+  // Clean the path the delete actually removed, not the one read a moment ago. A
+  // concurrent replacement can commit a new path in between, and cleaning the
+  // stale one would strand the new object as unreferenced evidence forever.
+  const { data: deleted, error } = await supabase
     .from("visits")
     .delete()
     .eq("id", visit.id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("photo_path")
+    .maybeSingle();
 
   if (error) {
     return {
@@ -535,9 +540,19 @@ export async function deleteVisit(
     };
   }
 
+  if (!deleted) {
+    return {
+      message: "이미 삭제된 방문 인증입니다.",
+      status: "error",
+    };
+  }
+
   let cleanupFailed = false;
-  if (visit.photo_path) {
-    cleanupFailed = !(await cleanupStoredVisitPhoto(visit.photo_path, user.id));
+  if (deleted.photo_path) {
+    cleanupFailed = !(await cleanupStoredVisitPhoto(
+      deleted.photo_path,
+      user.id,
+    ));
   }
 
   if (restaurant) {
