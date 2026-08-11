@@ -4,19 +4,26 @@ const USER_ID = "11111111-1111-1111-1111-111111111111";
 const RESTAURANT_ID = "22222222-2222-2222-2222-222222222222";
 const OWNED_PATH = `${USER_ID}/${RESTAURANT_ID}/photo.webp`;
 
-const { cleanupStoredVisitPhoto, maybeSingle, requireUser } = vi.hoisted(
-  () => ({
-    cleanupStoredVisitPhoto: vi.fn(),
-    maybeSingle: vi.fn(),
-    requireUser: vi.fn(),
-  }),
-);
+const {
+  cleanupStoredVisitPhoto,
+  maybeSingle,
+  reclaimStoredAbandonedVisitPhotos,
+  requireUser,
+  retryStoredVisitPhotoCleanup,
+} = vi.hoisted(() => ({
+  cleanupStoredVisitPhoto: vi.fn(),
+  maybeSingle: vi.fn(),
+  reclaimStoredAbandonedVisitPhotos: vi.fn(),
+  requireUser: vi.fn(),
+  retryStoredVisitPhotoCleanup: vi.fn(),
+}));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth/require-user", () => ({ requireUser }));
 vi.mock("./photo-cleanup-server", () => ({
   cleanupStoredVisitPhoto,
-  retryStoredVisitPhotoCleanup: vi.fn(),
+  reclaimStoredAbandonedVisitPhotos,
+  retryStoredVisitPhotoCleanup,
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
@@ -26,7 +33,31 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { discardUploadedVisitPhoto } from "./actions";
+import {
+  discardUploadedVisitPhoto,
+  reclaimAbandonedVisitEvidence,
+} from "./actions";
+
+describe("reclaimAbandonedVisitEvidence", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    requireUser.mockResolvedValue({ id: USER_ID });
+  });
+
+  // The pre-upload path exists to unblock a full evidence budget, so it has to
+  // free everything holding budget. A failed delete sits in the retry queue and
+  // is far too recent for the age-gated sweep, so sweeping alone left the upload
+  // blocked until that object aged out.
+  it("retries queued deletions as well as sweeping abandoned uploads", async () => {
+    await reclaimAbandonedVisitEvidence();
+
+    expect(retryStoredVisitPhotoCleanup).toHaveBeenCalledWith(USER_ID);
+    expect(reclaimStoredAbandonedVisitPhotos).toHaveBeenCalledWith(
+      USER_ID,
+      null,
+    );
+  });
+});
 
 describe("discardUploadedVisitPhoto", () => {
   beforeEach(() => {

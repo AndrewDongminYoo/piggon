@@ -173,7 +173,6 @@ export async function upsertVisit(
   formData: FormData,
 ): Promise<VisitActionState> {
   const user = await requireUser();
-  await retryStoredVisitPhotoCleanup(user.id);
   const photoPath = getText(formData, "photoPath") || null;
   const parsed = visitInputSchema.safeParse({
     evidenceType: getText(formData, "evidenceType"),
@@ -197,7 +196,7 @@ export async function upsertVisit(
 
   // Runs after parsing so the path this request is saving is exempt from its own
   // sweep; an upload abandoned by an earlier attempt is reclaimed here.
-  await reclaimStoredAbandonedVisitPhotos(user.id, parsed.data.photoPath);
+  await freeVisitEvidenceBudget(user.id, parsed.data.photoPath);
 
   if (parsed.data.visitedOn > getCurrentSeoulDate()) {
     return {
@@ -401,13 +400,25 @@ export async function upsertVisit(
   };
 }
 
-// Reachable before an upload, unlike the sweep inside upsertVisit. Uploads
-// abandoned by earlier attempts hold evidence budget, and once they fill it the
-// upload fails — which stops the visit write, and with it the sweep that would
-// have freed the budget. The client calls this when an upload is refused.
+// Every way evidence budget can be freed, in one place. Two entry points need it
+// — a visit write, and the client before retrying an upload the budget refused —
+// and they have to free the same set. Deleting an object can fail and land in the
+// retry queue, where it still holds budget but is far too recent for the age-gated
+// sweep, so a path that only swept would stay blocked until that object aged out.
+async function freeVisitEvidenceBudget(
+  userId: string,
+  exceptPath: string | null,
+): Promise<void> {
+  await retryStoredVisitPhotoCleanup(userId);
+  await reclaimStoredAbandonedVisitPhotos(userId, exceptPath);
+}
+
+// Reachable before an upload, unlike the work inside upsertVisit: once objects
+// fill the budget the upload fails, which stops the visit write, and with it the
+// cleanup that would have freed the budget.
 export async function reclaimAbandonedVisitEvidence(): Promise<void> {
   const user = await requireUser();
-  await reclaimStoredAbandonedVisitPhotos(user.id, null);
+  await freeVisitEvidenceBudget(user.id, null);
 }
 
 // Rolls back an upload whose visit write failed. The browser cannot retry a failed
