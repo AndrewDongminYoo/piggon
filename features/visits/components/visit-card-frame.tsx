@@ -36,6 +36,10 @@ export function VisitCardFrame({
             width="960"
           />
         </div>
+      ) : visit.evidenceType === "photo" ? (
+        <p className="visit-card__evidence-missing">
+          사진으로 방문을 인증했어요.
+        </p>
       ) : visit.instagramUrl ? (
         <a
           className="visit-card__instagram"
@@ -47,7 +51,7 @@ export function VisitCardFrame({
         </a>
       ) : (
         <p className="visit-card__evidence-missing">
-          인증 사진을 불러오는 중입니다.
+          인증 링크를 불러오지 못했습니다.
         </p>
       )}
 

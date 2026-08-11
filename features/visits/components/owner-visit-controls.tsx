@@ -27,7 +27,13 @@ export function OwnerVisitControls({ visit }: { visit: UserCollectionItem }) {
 
   return (
     <div className="visit-card__owner-controls">
-      <Link href={`/restaurants/${visit.restaurant.slug}`}>인증 수정하기</Link>
+      {visit.restaurant.slug ? (
+        <Link href={`/restaurants/${visit.restaurant.slug}`}>
+          인증 수정하기
+        </Link>
+      ) : (
+        <small>현재 비공개 상태라 수정은 할 수 없지만 삭제는 가능합니다.</small>
+      )}
       {visit.review ? (
         <form action={reviewAction}>
           <input name="reviewId" type="hidden" value={visit.review.id} />

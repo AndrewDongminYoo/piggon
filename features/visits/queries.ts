@@ -3,6 +3,10 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+import {
+  getCollectionRestaurant,
+  type CollectionRestaurant,
+} from "./collection";
 import { isOwnedVisitPhotoPath, VISIT_EVIDENCE_BUCKET } from "./storage";
 
 export type VisitReview = {
@@ -37,12 +41,7 @@ export type ViewerVisit = {
 };
 
 export type UserCollectionItem = ViewerVisit & {
-  restaurant: {
-    id: string;
-    name: string;
-    region: string;
-    slug: string;
-  };
+  restaurant: CollectionRestaurant;
 };
 
 type VisitRow = {
@@ -54,6 +53,11 @@ type VisitRow = {
   user_id: string;
   visited_on: string;
 };
+
+type PublicVisitRow = Pick<
+  VisitRow,
+  "evidence_type" | "id" | "instagram_url" | "user_id" | "visited_on"
+>;
 
 type ReviewRow = {
   body: string;
@@ -190,9 +194,7 @@ export async function getPublicRestaurantCommunity(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("visits")
-    .select(
-      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url",
-    )
+    .select("id, user_id, visited_on, evidence_type, instagram_url")
     .eq("restaurant_id", restaurantId)
     .eq("hidden", false)
     .order("visited_on", { ascending: false });
@@ -201,7 +203,7 @@ export async function getPublicRestaurantCommunity(
     throw new Error("Unable to load public visits", { cause: error });
   }
 
-  const visits = data as VisitRow[];
+  const visits = data as PublicVisitRow[];
   if (visits.length === 0) {
     return [];
   }
@@ -211,7 +213,6 @@ export async function getPublicRestaurantCommunity(
   const [
     { data: profiles, error: profileError },
     { data: reviews, error: reviewError },
-    photoUrls,
   ] = await Promise.all([
     supabase.from("profiles").select("id, display_name").in("id", userIds),
     supabase
@@ -219,7 +220,6 @@ export async function getPublicRestaurantCommunity(
       .select("id, visit_id, rating, body, updated_at")
       .in("visit_id", visitIds)
       .eq("hidden", false),
-    createVisitPhotoUrlMap(visits),
   ]);
 
   if (profileError || reviewError) {
@@ -247,7 +247,7 @@ export async function getPublicRestaurantCommunity(
         evidenceType: visit.evidence_type,
         id: visit.id,
         instagramUrl: visit.instagram_url,
-        photoUrl: photoUrls.get(visit.id) ?? null,
+        photoUrl: null,
         review: mapReview(reviewByVisitId.get(visit.id)),
         visitedOn: visit.visited_on,
       },
@@ -270,7 +270,7 @@ export async function listUserCollection(
         evidence_type,
         photo_path,
         instagram_url,
-        restaurants!inner (
+        restaurants (
           id,
           slug,
           name,
@@ -280,7 +280,6 @@ export async function listUserCollection(
       `,
     )
     .eq("user_id", userId)
-    .eq("restaurants.status", "published")
     .order("visited_on", { ascending: false });
 
   if (error) {
@@ -293,7 +292,7 @@ export async function listUserCollection(
       name: string;
       region: string;
       slug: string;
-    };
+    } | null;
   };
 
   const visits = data as unknown as CollectionRow[];
@@ -326,7 +325,7 @@ export async function listUserCollection(
     instagramUrl: visit.instagram_url,
     photoPath: visit.photo_path,
     photoUrl: photoUrls.get(visit.id) ?? null,
-    restaurant: visit.restaurants,
+    restaurant: getCollectionRestaurant(visit.restaurant_id, visit.restaurants),
     review: mapReview(reviewByVisitId.get(visit.id)),
     visitedOn: visit.visited_on,
   }));

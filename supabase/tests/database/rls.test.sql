@@ -1,6 +1,6 @@
 begin;
 
-select plan(21);
+select plan(22);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -102,6 +102,18 @@ select throws_ok(
   '23514',
   null,
   'an owner cannot store a future visit date'
+);
+
+select ok(
+  position(
+    'Asia/Seoul' in (
+      select pg_get_constraintdef(oid)
+      from pg_constraint
+      where conname = 'visits_not_future_check'
+        and conrelid = 'public.visits'::regclass
+    )
+  ) > 0,
+  'the visit date constraint follows the Seoul calendar date'
 );
 
 select results_eq(

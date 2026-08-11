@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/require-user";
 import { createClient } from "@/lib/supabase/server";
 
+import { getReviewMutation } from "./review-mutation";
 import {
   deleteReviewInputSchema,
   deleteVisitInputSchema,
@@ -109,6 +110,18 @@ async function saveReview(
         rating: input.rating,
         visit_id: input.visitId,
       });
+
+  return !error;
+}
+
+async function deleteReviewForVisit(
+  supabase: SupabaseClient,
+  visitId: string,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("reviews")
+    .delete()
+    .eq("visit_id", visitId);
 
   return !error;
 }
@@ -293,28 +306,37 @@ export async function upsertVisit(
       .remove([previousVisit.photo_path]);
   }
 
-  if (parsed.data.rating !== null && parsed.data.reviewBody !== null) {
-    const reviewSaved = await saveReview(supabase, {
-      body: parsed.data.reviewBody,
-      rating: parsed.data.rating,
-      visitId: visit.id,
-    });
+  const reviewMutation = getReviewMutation({
+    body: parsed.data.reviewBody,
+    rating: parsed.data.rating,
+  });
+  const reviewSaved =
+    reviewMutation.kind === "save"
+      ? await saveReview(supabase, {
+          body: reviewMutation.body,
+          rating: reviewMutation.rating,
+          visitId: visit.id,
+        })
+      : await deleteReviewForVisit(supabase, visit.id);
 
+  if (!reviewSaved) {
     refreshVisitPages(restaurant.slug);
-
-    if (!reviewSaved) {
-      return {
-        message:
-          "방문 인증은 저장했지만 리뷰는 저장하지 못했습니다. 리뷰만 다시 시도해 주세요.",
-        photoPath: visit.photo_path,
-        retryReview: {
-          body: parsed.data.reviewBody,
-          rating: parsed.data.rating,
-        },
-        status: "partial",
-        visitId: visit.id,
-      };
-    }
+    return {
+      message:
+        reviewMutation.kind === "save"
+          ? "방문 인증은 저장했지만 리뷰는 저장하지 못했습니다. 리뷰만 다시 시도해 주세요."
+          : "방문 인증은 저장했지만 기존 리뷰를 삭제하지 못했습니다. 다시 시도해 주세요.",
+      photoPath: visit.photo_path,
+      retryReview:
+        reviewMutation.kind === "save"
+          ? {
+              body: reviewMutation.body,
+              rating: reviewMutation.rating,
+            }
+          : undefined,
+      status: "partial",
+      visitId: visit.id,
+    };
   }
 
   const ownedVisit = await getOwnedVisit(supabase, visit.id, user.id);

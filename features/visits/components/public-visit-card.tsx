@@ -6,7 +6,7 @@ export function PublicVisitCard({ visit }: { visit: PublicVisit }) {
     <VisitCardFrame
       heading={visit.displayName}
       subheading={`${visit.visitedOn} 방문`}
-      visit={visit}
+      visit={{ ...visit, photoUrl: null }}
     />
   );
 }
