@@ -272,31 +272,52 @@ export async function upsertVisit(
     .eq("restaurant_id", restaurant.id)
     .maybeSingle();
 
-  const visitWrite = previousVisit
-    ? supabase
-        .from("visits")
-        .update({
-          evidence_type: parsed.data.evidenceType,
-          instagram_url: parsed.data.instagramUrl,
-          photo_path: parsed.data.photoPath,
-          visited_on: parsed.data.visitedOn,
-        })
-        .eq("id", previousVisit.id)
-    : supabase.from("visits").insert({
-        evidence_type: parsed.data.evidenceType,
-        instagram_url: parsed.data.instagramUrl,
-        photo_path: parsed.data.photoPath,
+  const visitFields = {
+    evidence_type: parsed.data.evidenceType,
+    instagram_url: parsed.data.instagramUrl,
+    photo_path: parsed.data.photoPath,
+    visited_on: parsed.data.visitedOn,
+  };
+
+  // The update is a compare-and-swap on the evidence we just read. Two tabs
+  // replacing the same photo would otherwise both read the old path, write
+  // different new ones, and both clean up only the shared old path — stranding
+  // the loser's uploaded object. Losing the swap matches no row, so that request
+  // fails and its upload is rolled back through discardUploadedVisitPhoto.
+  const visitWrite = !previousVisit
+    ? supabase.from("visits").insert({
+        ...visitFields,
         restaurant_id: restaurant.id,
         user_id: user.id,
-        visited_on: parsed.data.visitedOn,
-      });
+      })
+    : previousVisit.photo_path === null
+      ? supabase
+          .from("visits")
+          .update(visitFields)
+          .eq("id", previousVisit.id)
+          .is("photo_path", null)
+      : supabase
+          .from("visits")
+          .update(visitFields)
+          .eq("id", previousVisit.id)
+          .eq("photo_path", previousVisit.photo_path);
+
   const { data: visit, error: visitError } = await visitWrite
     .select("id, photo_path")
-    .single();
+    .maybeSingle();
 
-  if (visitError || !visit) {
+  if (visitError) {
     return {
       message: "방문 인증을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      photoPath: parsed.data.photoPath,
+      status: "error",
+    };
+  }
+
+  if (!visit) {
+    return {
+      message:
+        "이 방문 인증이 다른 곳에서 먼저 변경되었습니다. 새로고침한 뒤 다시 시도해 주세요.",
       photoPath: parsed.data.photoPath,
       status: "error",
     };
