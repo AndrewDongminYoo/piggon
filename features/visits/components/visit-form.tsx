@@ -5,7 +5,12 @@ import { useActionState, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
-import { saveDisplayName, upsertReview, upsertVisit } from "../actions";
+import {
+  discardUploadedVisitPhoto,
+  saveDisplayName,
+  upsertReview,
+  upsertVisit,
+} from "../actions";
 import type { ViewerVisit } from "../queries";
 import { INITIAL_VISIT_ACTION_STATE, type VisitActionState } from "../schema";
 import {
@@ -189,20 +194,18 @@ export function VisitForm({
 
       const state = await upsertVisit(previousState, formData);
       if (state.status === "error" && uploadedPath) {
-        const supabase = createClient();
-        await supabase.storage
-          .from(VISIT_EVIDENCE_BUCKET)
-          .remove([uploadedPath]);
+        await discardUploadedVisitPhoto(restaurantId, uploadedPath);
       } else if (state.status === "success" || state.status === "partial") {
         router.refresh();
       }
       return state;
     } catch {
       if (uploadedPath) {
-        const supabase = createClient();
-        await supabase.storage
-          .from(VISIT_EVIDENCE_BUCKET)
-          .remove([uploadedPath]);
+        // Already on the failure path; a failed discard must not replace the
+        // user-facing message with a crash.
+        await discardUploadedVisitPhoto(restaurantId, uploadedPath).catch(
+          () => undefined,
+        );
       }
 
       return {

@@ -369,6 +369,35 @@ export async function upsertVisit(
   };
 }
 
+// Rolls back an upload whose visit write failed. The browser cannot retry a failed
+// delete, so this routes the discard through the same remove-or-queue driver that
+// deletion uses; a transient Storage failure leaves a cleanup job instead of an
+// orphan counting against the uploader's evidence quota.
+export async function discardUploadedVisitPhoto(
+  restaurantId: string,
+  photoPath: string,
+): Promise<void> {
+  const user = await requireUser();
+  if (!isOwnedVisitPhotoPath(photoPath, user.id, restaurantId)) {
+    return;
+  }
+
+  const supabase = await createClient();
+  const { data: savedVisit, error } = await supabase
+    .from("visits")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("photo_path", photoPath)
+    .maybeSingle();
+
+  // A path a visit still points at is evidence, not a leftover upload.
+  if (error || savedVisit) {
+    return;
+  }
+
+  await cleanupStoredVisitPhoto(photoPath, user.id);
+}
+
 export async function upsertReview(
   _previousState: VisitActionState,
   formData: FormData,
