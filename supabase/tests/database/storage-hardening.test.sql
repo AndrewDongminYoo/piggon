@@ -1,6 +1,6 @@
 begin;
 
-select plan(38);
+select plan(39);
 
 select has_function(
   'public',
@@ -253,6 +253,17 @@ select ok(
     )
   ),
   'the server can record a validated replacement'
+);
+
+-- Left behind for the deletion assertion further down: every replacement mints a
+-- new path, so a record that outlives its object is unbounded growth.
+select public.record_visit_evidence_validation(
+  '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp',
+  '44444444-4444-4444-4444-444444444444',
+  public.visit_evidence_version(
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp',
+    '44444444-4444-4444-4444-444444444444'
+  )
 );
 
 set local role authenticated;
@@ -513,6 +524,13 @@ select lives_ok(
   $$delete from storage.objects
     where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp'$$,
   'the service role can still delete an unreferenced upload'
+);
+
+select is_empty(
+  $$select 1
+    from public.visit_evidence_validations
+    where path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp'$$,
+  'deleting evidence takes its validation record with it'
 );
 
 -- The whole point of keying the lock on the evidence owner. Under service_role
