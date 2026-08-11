@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { getServerEnv } from "@/lib/env/server";
 import { createClient } from "@/lib/supabase/server";
 
+import { isAuthorizedGoogleAdmin } from "./admin-auth";
+
 export async function requireAdmin() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
@@ -14,7 +16,7 @@ export async function requireAdmin() {
     redirect("/?auth=required");
   }
 
-  if (data.user.email?.toLowerCase() !== adminGoogleEmail) {
+  if (!isAuthorizedGoogleAdmin(data.user, adminGoogleEmail)) {
     redirect("/?auth=forbidden");
   }
 
