@@ -77,7 +77,7 @@ The [Supabase Google login guide](https://supabase.com/docs/guides/auth/social-l
 1. In Google Auth Platform, create a Web application OAuth client.
 2. Add `http://localhost:3000` and the intended preview and production origins under Authorized JavaScript origins.
 3. Add the callback shown by the Supabase Google provider page under Authorized redirect URIs.
-4. For a locally configured Google provider, the callback is `http://127.0.0.1:55321/auth/v1/callback`.
+4. For a locally configured Google provider, the callback is `http://127.0.0.1:54321/auth/v1/callback`, matching the `[api] port` in `supabase/config.toml`.
 5. Enable Google in Supabase Authentication providers and store the client ID and secret there.
 6. In Supabase URL Configuration, set the production origin as Site URL and allow `http://localhost:3000/**`, the Vercel preview pattern, and the exact production `/auth/callback` URL.
 
@@ -127,7 +127,7 @@ Any change that weakens an RLS policy must be reviewed explicitly and must not b
 ## CI
 
 GitHub Actions runs two independent jobs on pull requests and pushes to `main`.
-The app job performs a frozen install, Vitest, ESLint, and a production build with non-secret build placeholders.
+The app job performs a frozen install, Vitest, ESLint, and a production build using only the four browser-exposed or placeholder values checked into the workflow; `SUPABASE_SECRET_KEY` is never supplied because no build-time code path reads it.
 The database job starts a local Supabase stack, reapplies migrations and seed data, and runs pgTAP.
 
 Before a release, run the same complete local gate.
