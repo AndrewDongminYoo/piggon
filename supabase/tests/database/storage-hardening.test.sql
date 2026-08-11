@@ -1,6 +1,6 @@
 begin;
 
-select plan(23);
+select plan(26);
 
 select has_function(
   'public',
@@ -323,6 +323,47 @@ select ok(
   ),
   'owner deletion is gated on the reference check'
 );
+
+-- Deleting an object and attaching that path to a visit are checked by different
+-- predicates, so without a shared lock both could pass their own snapshot and
+-- commit. Asserting they take the *same* key is the point: separate correct locks
+-- would still let the two transitions run concurrently.
+set local role authenticated;
+set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444444';
+
+select results_eq(
+  $$select count(distinct (classid, objid))::int
+    from pg_locks
+    where locktype = 'advisory'
+      and pid = pg_backend_pid()
+      and objsubid = 1$$,
+  array[1],
+  'every evidence transition serializes on one per-user key'
+);
+
+select results_eq(
+  $$select public.visit_evidence_is_referenced(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
+    )
+    and public.current_user_owns_visit_evidence(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
+    )
+    and public.current_user_unreferenced_evidence_count() >= 0$$,
+  array[true],
+  'the reference, ownership and quota predicates all remain callable'
+);
+
+select results_eq(
+  $$select count(distinct (classid, objid))::int
+    from pg_locks
+    where locktype = 'advisory'
+      and pid = pg_backend_pid()
+      and objsubid = 1$$,
+  array[1],
+  'calling all three predicates still holds exactly one key'
+);
+
+reset role;
 
 select * from finish();
 

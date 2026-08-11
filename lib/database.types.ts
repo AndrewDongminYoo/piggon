@@ -483,6 +483,7 @@ export type Database = {
         };
         Returns: string[];
       };
+      lock_visit_evidence: { Args: never; Returns: undefined };
       save_restaurant_with_attributes: {
         Args: {
           p_availability_periods: Json;
@@ -506,6 +507,10 @@ export type Database = {
           p_youtube_video_id: string;
         };
         Returns: string;
+      };
+      visit_evidence_is_referenced: {
+        Args: { p_path: string };
+        Returns: boolean;
       };
     };
     Enums: {
