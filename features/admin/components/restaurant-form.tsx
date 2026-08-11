@@ -24,6 +24,8 @@ import {
   type KakaoPlaceSelection,
 } from "@/features/restaurants/components/kakao-place-picker";
 
+import { getNextPlaceSource } from "../place-source";
+
 export type RestaurantFormValue = Omit<RestaurantAdminInput, "intent"> & {
   status: "draft" | "published" | "archived";
 };
@@ -199,6 +201,10 @@ export function RestaurantForm({
     INITIAL_RESTAURANT_ADMIN_STATE,
   );
   const snapshot = state.formValues;
+  const restoredKakaoPlaceId =
+    snapshot?.kakaoPlaceId ?? initialValue.kakaoPlaceId ?? "";
+  const restoredSourceUrl = snapshot?.sourceUrl ?? initialValue.sourceUrl ?? "";
+  const inferredAutoSourceUrl = `https://place.map.kakao.com/${restoredKakaoPlaceId}`;
   const [details, setDetails] = useState({
     alternateName: snapshot?.alternateName ?? initialValue.alternateName ?? "",
     description: snapshot?.description ?? initialValue.description ?? "",
@@ -207,12 +213,16 @@ export function RestaurantForm({
     region: snapshot?.region ?? initialValue.region,
     slug: snapshot?.slug ?? initialValue.slug,
   });
-  const [sourceUrl, setSourceUrl] = useState(
-    snapshot?.sourceUrl ?? initialValue.sourceUrl ?? "",
-  );
+  const [source, setSource] = useState({
+    autoUrl:
+      restoredKakaoPlaceId && restoredSourceUrl === inferredAutoSourceUrl
+        ? restoredSourceUrl
+        : "",
+    url: restoredSourceUrl,
+  });
   const [location, setLocation] = useState({
     address: snapshot?.address ?? initialValue.address ?? "",
-    kakaoPlaceId: snapshot?.kakaoPlaceId ?? initialValue.kakaoPlaceId ?? "",
+    kakaoPlaceId: restoredKakaoPlaceId,
     latitude: snapshot?.latitude ?? initialValue.latitude?.toString() ?? "",
     longitude: snapshot?.longitude ?? initialValue.longitude?.toString() ?? "",
     placeName: initialValue.kakaoPlaceId ? initialValue.name : "",
@@ -260,9 +270,9 @@ export function RestaurantForm({
       latitude,
       longitude,
       name: location.placeName || initialValue.name,
-      sourceUrl,
+      sourceUrl: source.url,
     };
-  }, [initialValue.name, location, sourceUrl]);
+  }, [initialValue.name, location, source.url]);
 
   const handlePlaceChange = useCallback((selection: KakaoPlaceSelection) => {
     setLocation({
@@ -272,7 +282,7 @@ export function RestaurantForm({
       longitude: selection.longitude.toString(),
       placeName: selection.name,
     });
-    setSourceUrl((current) => current || selection.sourceUrl);
+    setSource((current) => getNextPlaceSource(current, selection.sourceUrl));
   }, []);
 
   function confirmPublication(event: FormEvent<HTMLFormElement>): void {
@@ -464,10 +474,15 @@ export function RestaurantForm({
               <span>기본 정보 출처 URL</span>
               <input
                 name="sourceUrl"
-                onChange={(event) => setSourceUrl(event.target.value)}
+                onChange={(event) =>
+                  setSource((current) => ({
+                    ...current,
+                    url: event.target.value,
+                  }))
+                }
                 placeholder="https://..."
                 type="url"
-                value={sourceUrl}
+                value={source.url}
               />
               <FieldError errors={state.fieldErrors?.sourceUrl} />
             </label>
