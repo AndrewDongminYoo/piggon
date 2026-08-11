@@ -1,6 +1,6 @@
 begin;
 
-select plan(20);
+select plan(23);
 
 select has_function(
   'public',
@@ -288,6 +288,40 @@ select results_eq(
     '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-2.webp'
   ],
   'only aged, unreferenced evidence is reclaimable'
+);
+
+reset role;
+
+-- The delete policy itself cannot be exercised here: storage.protect_delete()
+-- rejects direct SQL deletion before any policy is consulted, so a pgTAP delete
+-- would prove nothing about the policy. Assert the two halves that are reachable
+-- — the predicate is correct, and the policy actually uses it — and exercise the
+-- policy end to end through the Storage API instead.
+select results_eq(
+  $$select public.visit_evidence_is_referenced(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
+    )$$,
+  array[true],
+  'evidence a visit points at reads as referenced'
+);
+
+select results_eq(
+  $$select public.visit_evidence_is_referenced(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-3.webp'
+    )$$,
+  array[false],
+  'an abandoned upload reads as unreferenced'
+);
+
+select ok(
+  (
+    select position('visit_evidence_is_referenced' in qual) > 0
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'users delete their visit evidence'
+  ),
+  'owner deletion is gated on the reference check'
 );
 
 select * from finish();
