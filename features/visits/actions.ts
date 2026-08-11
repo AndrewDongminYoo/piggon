@@ -85,6 +85,34 @@ async function getOwnedVisit(
   return error ? null : data;
 }
 
+async function saveReview(
+  supabase: SupabaseClient,
+  input: { body: string; rating: number; visitId: string },
+): Promise<boolean> {
+  const { data: existingReview, error: readError } = await supabase
+    .from("reviews")
+    .select("id")
+    .eq("visit_id", input.visitId)
+    .maybeSingle();
+
+  if (readError) {
+    return false;
+  }
+
+  const { error } = existingReview
+    ? await supabase
+        .from("reviews")
+        .update({ body: input.body, rating: input.rating })
+        .eq("id", existingReview.id)
+    : await supabase.from("reviews").insert({
+        body: input.body,
+        rating: input.rating,
+        visit_id: input.visitId,
+      });
+
+  return !error;
+}
+
 export async function saveDisplayName(
   _previousState: VisitActionState,
   formData: FormData,
@@ -221,24 +249,30 @@ export async function upsertVisit(
 
   const { data: previousVisit } = await supabase
     .from("visits")
-    .select("photo_path")
+    .select("id, photo_path")
     .eq("user_id", user.id)
     .eq("restaurant_id", restaurant.id)
     .maybeSingle();
 
-  const { data: visit, error: visitError } = await supabase
-    .from("visits")
-    .upsert(
-      {
+  const visitWrite = previousVisit
+    ? supabase
+        .from("visits")
+        .update({
+          evidence_type: parsed.data.evidenceType,
+          instagram_url: parsed.data.instagramUrl,
+          photo_path: parsed.data.photoPath,
+          visited_on: parsed.data.visitedOn,
+        })
+        .eq("id", previousVisit.id)
+    : supabase.from("visits").insert({
         evidence_type: parsed.data.evidenceType,
         instagram_url: parsed.data.instagramUrl,
         photo_path: parsed.data.photoPath,
         restaurant_id: restaurant.id,
         user_id: user.id,
         visited_on: parsed.data.visitedOn,
-      },
-      { onConflict: "user_id,restaurant_id" },
-    )
+      });
+  const { data: visit, error: visitError } = await visitWrite
     .select("id, photo_path")
     .single();
 
@@ -260,18 +294,15 @@ export async function upsertVisit(
   }
 
   if (parsed.data.rating !== null && parsed.data.reviewBody !== null) {
-    const { error: reviewError } = await supabase.from("reviews").upsert(
-      {
-        body: parsed.data.reviewBody,
-        rating: parsed.data.rating,
-        visit_id: visit.id,
-      },
-      { onConflict: "visit_id" },
-    );
+    const reviewSaved = await saveReview(supabase, {
+      body: parsed.data.reviewBody,
+      rating: parsed.data.rating,
+      visitId: visit.id,
+    });
 
     refreshVisitPages(restaurant.slug);
 
-    if (reviewError) {
+    if (!reviewSaved) {
       return {
         message:
           "방문 인증은 저장했지만 리뷰는 저장하지 못했습니다. 리뷰만 다시 시도해 주세요.",
@@ -345,16 +376,13 @@ export async function upsertReview(
     };
   }
 
-  const { error } = await supabase.from("reviews").upsert(
-    {
-      body: parsed.data.body,
-      rating: parsed.data.rating,
-      visit_id: visit.id,
-    },
-    { onConflict: "visit_id" },
-  );
+  const reviewSaved = await saveReview(supabase, {
+    body: parsed.data.body,
+    rating: parsed.data.rating,
+    visitId: visit.id,
+  });
 
-  if (error) {
+  if (!reviewSaved) {
     return {
       message: "리뷰를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       status: "error",
