@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import type { Json } from "@/lib/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { requireAdmin } from "./require-admin";
@@ -127,68 +128,6 @@ function getFormSnapshot(formData: FormData): Record<string, string> {
   );
 }
 
-async function replaceRestaurantAttributes(
-  admin: AdminClient,
-  restaurantId: string,
-  input: RestaurantAdminInput,
-): Promise<boolean> {
-  const deleteResults = await Promise.all([
-    admin
-      .from("restaurant_certifications")
-      .delete()
-      .eq("restaurant_id", restaurantId),
-    admin.from("restaurant_awards").delete().eq("restaurant_id", restaurantId),
-    admin
-      .from("restaurant_availability_periods")
-      .delete()
-      .eq("restaurant_id", restaurantId),
-  ]);
-
-  if (deleteResults.some(({ error }) => error)) {
-    return false;
-  }
-
-  const insertResults = await Promise.all([
-    input.certifications.length > 0
-      ? admin.from("restaurant_certifications").insert(
-          input.certifications.map((certification) => ({
-            certification_number: certification.certificationNumber,
-            issuer: certification.issuer,
-            name: certification.name,
-            restaurant_id: restaurantId,
-            source_url: certification.sourceUrl,
-            valid_from: certification.validFrom,
-            valid_until: certification.validUntil,
-          })),
-        )
-      : Promise.resolve({ error: null }),
-    input.awards.length > 0
-      ? admin.from("restaurant_awards").insert(
-          input.awards.map((award) => ({
-            award_year: award.awardYear,
-            competition_name: award.competitionName,
-            division: award.division,
-            placement: award.placement,
-            restaurant_id: restaurantId,
-            source_url: award.sourceUrl,
-          })),
-        )
-      : Promise.resolve({ error: null }),
-    input.availabilityPeriods.length > 0
-      ? admin.from("restaurant_availability_periods").insert(
-          input.availabilityPeriods.map((period) => ({
-            ends_on: period.endsOn,
-            note: period.note,
-            restaurant_id: restaurantId,
-            starts_on: period.startsOn,
-          })),
-        )
-      : Promise.resolve({ error: null }),
-  ]);
-
-  return insertResults.every(({ error }) => !error);
-}
-
 async function loadRestaurantForPublication(
   admin: AdminClient,
   restaurantId: string,
@@ -309,7 +248,13 @@ export async function saveRestaurant(
     };
   }
 
-  const baseValues = {
+  const targetStatus =
+    parsed.data.intent === "publish"
+      ? ("published" as const)
+      : existing?.status === "archived"
+        ? ("archived" as const)
+        : ("draft" as const);
+  const restaurant = {
     address: parsed.data.address,
     alternate_name: parsed.data.alternateName,
     description: parsed.data.description,
@@ -321,69 +266,55 @@ export async function saveRestaurant(
     region: parsed.data.region,
     slug: parsed.data.slug,
     source_url: parsed.data.sourceUrl,
-    status:
-      parsed.data.intent === "draft" && existing?.status === "archived"
-        ? ("archived" as const)
-        : ("draft" as const),
+    status: targetStatus,
     updated_by: user.id,
-  };
+  } satisfies Json;
+  const certifications = parsed.data.certifications.map((certification) => ({
+    certification_number: certification.certificationNumber,
+    issuer: certification.issuer,
+    name: certification.name,
+    source_url: certification.sourceUrl,
+    valid_from: certification.validFrom,
+    valid_until: certification.validUntil,
+  })) satisfies Json;
+  const awards = parsed.data.awards.map((award) => ({
+    award_year: award.awardYear,
+    competition_name: award.competitionName,
+    division: award.division,
+    placement: award.placement,
+    source_url: award.sourceUrl,
+  })) satisfies Json;
+  const availabilityPeriods = parsed.data.availabilityPeriods.map((period) => ({
+    ends_on: period.endsOn,
+    note: period.note,
+    starts_on: period.startsOn,
+  })) satisfies Json;
 
-  const baseResult = existing
-    ? await admin
-        .from("restaurants")
-        .update(baseValues)
-        .eq("id", existing.id)
-        .select("id, slug")
-        .single()
-    : await admin
-        .from("restaurants")
-        .insert(baseValues)
-        .select("id, slug")
-        .single();
+  const { data: savedRestaurant, error: saveError } = await admin
+    .rpc("save_restaurant_with_attributes", {
+      p_availability_periods: availabilityPeriods,
+      p_awards: awards,
+      p_certifications: certifications,
+      p_restaurant: restaurant,
+      ...(existing ? { p_restaurant_id: existing.id } : {}),
+    })
+    .single();
 
-  if (baseResult.error || !baseResult.data) {
+  if (saveError || !savedRestaurant) {
     return {
       formValues,
       message:
-        baseResult.error?.code === "23505"
+        saveError?.code === "23505"
           ? "이미 사용 중인 슬러그 또는 Kakao 장소입니다."
-          : "맛집 기본 정보를 저장하지 못했습니다.",
+          : "맛집과 인증·수상·운영기간을 저장하지 못했습니다.",
       status: "error",
     };
   }
 
-  const attributesSaved = await replaceRestaurantAttributes(
-    admin,
-    baseResult.data.id,
-    parsed.data,
+  refreshRestaurantPages(
+    existing?.slug ?? null,
+    savedRestaurant.restaurant_slug,
   );
-  if (!attributesSaved) {
-    refreshRestaurantPages(existing?.slug ?? null, baseResult.data.slug);
-    return {
-      formValues,
-      message:
-        "기본 정보는 초안으로 저장했지만 인증·수상·운영기간을 모두 저장하지 못했습니다.",
-      restaurantId: baseResult.data.id,
-      status: "error",
-    };
-  }
-
-  if (parsed.data.intent === "publish") {
-    const { error } = await admin
-      .from("restaurants")
-      .update({ status: "published", updated_by: user.id })
-      .eq("id", baseResult.data.id);
-    if (error) {
-      return {
-        formValues,
-        message: "내용은 초안으로 저장했지만 공개하지 못했습니다.",
-        restaurantId: baseResult.data.id,
-        status: "error",
-      };
-    }
-  }
-
-  refreshRestaurantPages(existing?.slug ?? null, baseResult.data.slug);
   return {
     message:
       parsed.data.intent === "publish"
@@ -391,7 +322,7 @@ export async function saveRestaurant(
         : existing?.status === "archived"
           ? "보관 상태를 유지한 채 내용을 저장했습니다."
           : "맛집을 초안으로 저장했습니다.",
-    restaurantId: baseResult.data.id,
+    restaurantId: savedRestaurant.restaurant_id,
     status: "success",
   };
 }

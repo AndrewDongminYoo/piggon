@@ -100,6 +100,10 @@ const videoLinkSchema = z.object({
 
 export const videoAdminSchema = z
   .object({
+    editingVideoId: z.preprocess(
+      (value) => trimOrNull(value) ?? null,
+      z.union([z.null(), z.string().regex(DATABASE_ID_PATTERN)]),
+    ),
     fetchState: z.enum(["failed", "fetched", "manual", "pending"]),
     links: z.array(videoLinkSchema).min(1).max(100),
     thumbnailUrl: nullableText(2048),

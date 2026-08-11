@@ -406,6 +406,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      current_user_has_profile: { Args: never; Returns: boolean };
+      save_restaurant_with_attributes: {
+        Args: {
+          p_availability_periods: Json;
+          p_awards: Json;
+          p_certifications: Json;
+          p_restaurant: Json;
+          p_restaurant_id?: string;
+        };
+        Returns: {
+          restaurant_id: string;
+          restaurant_slug: string;
+        }[];
+      };
       upsert_video_with_restaurants: {
         Args: {
           p_canonical_url: string;

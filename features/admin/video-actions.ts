@@ -6,6 +6,7 @@ import type { Json } from "@/lib/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { requireAdmin } from "./require-admin";
+import { canReplaceVideoLinks } from "./video-edit";
 import { type VideoAdminActionState, videoAdminSchema } from "./video-schema";
 
 function getText(formData: FormData, name: string): string {
@@ -33,9 +34,14 @@ function getFieldErrors(
 
 function getFormSnapshot(formData: FormData): Record<string, string> {
   return Object.fromEntries(
-    ["fetchState", "links", "thumbnailUrl", "title", "youtubeUrl"].map(
-      (name) => [name, getText(formData, name)],
-    ),
+    [
+      "editingVideoId",
+      "fetchState",
+      "links",
+      "thumbnailUrl",
+      "title",
+      "youtubeUrl",
+    ].map((name) => [name, getText(formData, name)]),
   );
 }
 
@@ -55,6 +61,7 @@ export async function saveVideoLinks(
 
   const formValues = getFormSnapshot(formData);
   const parsed = videoAdminSchema.safeParse({
+    editingVideoId: getText(formData, "editingVideoId"),
     fetchState: getText(formData, "fetchState"),
     links: parseLinks(formData),
     thumbnailUrl: getText(formData, "thumbnailUrl"),
@@ -93,6 +100,17 @@ export async function saveVideoLinks(
     return {
       formValues,
       message: "기존 영상 연결을 확인하지 못했습니다.",
+      status: "error",
+    };
+  }
+
+  if (
+    !canReplaceVideoLinks(existingVideo?.id ?? null, parsed.data.editingVideoId)
+  ) {
+    return {
+      formValues,
+      message:
+        "이미 등록된 영상입니다. 기존 영상 편집에서 선택한 뒤 연결을 수정해 주세요.",
       status: "error",
     };
   }

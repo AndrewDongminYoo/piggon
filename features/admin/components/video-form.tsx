@@ -109,7 +109,9 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
     INITIAL_VIDEO_ADMIN_STATE,
   );
   const snapshot = state.formValues;
-  const [selectedVideoId, setSelectedVideoId] = useState("");
+  const [selectedVideoId, setSelectedVideoId] = useState(
+    snapshot?.editingVideoId ?? "",
+  );
   const [youtubeUrl, setYouTubeUrl] = useState(snapshot?.youtubeUrl ?? "");
   const [title, setTitle] = useState(snapshot?.title ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(
@@ -233,6 +235,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
         className="restaurant-admin-form"
         onReset={(event) => event.preventDefault()}
       >
+        <input name="editingVideoId" type="hidden" value={selectedVideoId} />
         <input name="fetchState" type="hidden" value={fetchState} />
         <input
           name="links"
@@ -258,8 +261,12 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                 maxLength={2048}
                 name="youtubeUrl"
                 onChange={(event) => {
+                  setSelectedVideoId("");
                   setYouTubeUrl(event.target.value);
+                  setTitle("");
+                  setThumbnailUrl("");
                   setFetchState("pending");
+                  setLinks([]);
                   setLookupMessage("");
                   setLookedUpVideoId("");
                 }}
