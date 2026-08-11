@@ -9,6 +9,7 @@ import {
   readVisitEvidenceVersion,
   recordValidatedVisitEvidence,
 } from "./evidence-validation-server";
+import { decodesAsVisitImage } from "./image-decode-server";
 import { getReviewMutation } from "./review-mutation";
 import {
   cleanupStoredVisitPhoto,
@@ -276,13 +277,22 @@ export async function upsertVisit(
       };
     }
 
-    const mediaType = detectImageMediaType(
-      new Uint8Array(await photo.arrayBuffer()),
-    );
+    const photoBytes = new Uint8Array(await photo.arrayBuffer());
+    const mediaType = detectImageMediaType(photoBytes);
 
     if (!mediaType || !pathMatchesMediaType(parsed.data.photoPath, mediaType)) {
       return {
         message: "JPEG, PNG 또는 WebP 사진만 사용할 수 있습니다.",
+        photoPath: parsed.data.photoPath,
+        status: "error",
+      };
+    }
+
+    // Structure checks bound the shape of the bytes; only decoding them proves
+    // they are an image. This is the check the validation record certifies.
+    if (!(await decodesAsVisitImage(photoBytes, mediaType))) {
+      return {
+        message: "사진을 읽지 못했습니다. 다른 이미지를 선택해 주세요.",
         photoPath: parsed.data.photoPath,
         status: "error",
       };
