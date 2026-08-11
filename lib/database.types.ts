@@ -431,6 +431,10 @@ export type Database = {
     };
     Functions: {
       current_user_has_profile: { Args: never; Returns: boolean };
+      current_user_owns_visit_evidence: {
+        Args: { p_path: string };
+        Returns: boolean;
+      };
       current_user_unreferenced_evidence_count: {
         Args: never;
         Returns: number;

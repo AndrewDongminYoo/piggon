@@ -1,6 +1,6 @@
 begin;
 
-select plan(22);
+select plan(23);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -125,13 +125,18 @@ select results_eq(
   'a user cannot update another visit'
 );
 
+-- Two independent guards reject this, and they fire in different places. For an
+-- ordinary user the policy gets there first, because it requires an object the
+-- caller owns at that path (42501). The table constraint that checks the path
+-- belongs to this user and restaurant is asserted separately below, under a role
+-- that bypasses RLS, so neither guard can quietly stop carrying its weight.
 select throws_ok(
   $$update public.visits
     set evidence_type = 'photo',
         photo_path = '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
         instagram_url = null
     where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
-  '23514',
+  '42501',
   null,
   'an owner cannot attach another users storage path'
 );
@@ -147,6 +152,24 @@ select lives_ok(
     set body = '수정한 내 리뷰', rating = 4
     where visit_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
   'an owner can update review content without moderation columns'
+);
+
+reset role;
+
+-- The other half of the pair above: service_role bypasses RLS, so this reaches
+-- the table constraint and proves the path-ownership check is still doing work
+-- rather than being masked by the policy that now fires first for users.
+set local role service_role;
+
+select throws_ok(
+  $$update public.visits
+    set evidence_type = 'photo',
+        photo_path = '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+        instagram_url = null
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '23514',
+  null,
+  'the path ownership constraint still rejects a foreign path'
 );
 
 reset role;

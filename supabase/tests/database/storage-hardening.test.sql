@@ -1,6 +1,6 @@
 begin;
 
-select plan(19);
+select plan(20);
 
 select has_function(
   'public',
@@ -151,6 +151,29 @@ select throws_ok(
   '42501',
   null,
   'the budget rejects an upload past the unreferenced limit'
+);
+
+-- A photo visit is only proof if something was actually uploaded. The path shape
+-- is checked by a table constraint, so without this the same syntactically valid
+-- path could be registered by a direct REST write with no object behind it.
+select throws_ok(
+  $$insert into public.visits (
+      user_id,
+      restaurant_id,
+      visited_on,
+      evidence_type,
+      photo_path
+    )
+    values (
+      '44444444-4444-4444-4444-444444444444',
+      'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      current_date,
+      'photo',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/never-uploaded.webp'
+    )$$,
+  '42501',
+  null,
+  'a photo visit needs an uploaded object at its path'
 );
 
 insert into public.visits (
