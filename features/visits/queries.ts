@@ -37,6 +37,10 @@ export type ViewerVisit = {
   photoPath: string | null;
   photoUrl: string | null;
   review: VisitReview | null;
+  // Optimistic-concurrency token. The form submits the value it rendered with,
+  // and the write only lands if the row has not moved since — so a stale tab
+  // fails instead of silently reverting whatever changed in the meantime.
+  updatedAt: string;
   visitedOn: string;
 };
 
@@ -50,6 +54,7 @@ type VisitRow = {
   instagram_url: string | null;
   photo_path: string | null;
   restaurant_id: string;
+  updated_at: string;
   user_id: string;
   visited_on: string;
 };
@@ -150,7 +155,7 @@ export async function getViewerVisit(
   const { data, error } = await supabase
     .from("visits")
     .select(
-      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url",
+      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at",
     )
     .eq("restaurant_id", restaurantId)
     .eq("user_id", userId)
@@ -184,6 +189,7 @@ export async function getViewerVisit(
     photoPath: data.photo_path,
     photoUrl: photoUrls.get(data.id) ?? null,
     review: mapReview(review ?? undefined),
+    updatedAt: data.updated_at,
     visitedOn: data.visited_on,
   };
 }
@@ -270,6 +276,7 @@ export async function listUserCollection(
         evidence_type,
         photo_path,
         instagram_url,
+        updated_at,
         restaurants (
           id,
           slug,
@@ -327,6 +334,7 @@ export async function listUserCollection(
     photoUrl: photoUrls.get(visit.id) ?? null,
     restaurant: getCollectionRestaurant(visit.restaurant_id, visit.restaurants),
     review: mapReview(reviewByVisitId.get(visit.id)),
+    updatedAt: visit.updated_at,
     visitedOn: visit.visited_on,
   }));
 }

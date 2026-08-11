@@ -1,6 +1,6 @@
 begin;
 
-select plan(18);
+select plan(19);
 
 select has_function(
   'public',
@@ -188,28 +188,53 @@ select lives_ok(
   'attaching evidence to a visit frees budget for a replacement'
 );
 
--- Backs the compare-and-swap in upsertVisit: the loser of a concurrent photo
--- replacement holds a stale path, so its guarded update must match no row rather
--- than overwrite the winner and strand the winner's object.
+-- Backs the compare-and-swap in upsertVisit. The token is updated_at rather than
+-- photo_path so that any concurrent edit is caught, not only a photo-for-photo
+-- replacement: a tab that moved the visit to Instagram leaves photo_path null,
+-- which a stale photo form would otherwise be free to overwrite.
 select is_empty(
   $$update public.visits
       set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
       where user_id = '44444444-4444-4444-4444-444444444444'
-        and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-9.webp'
+        and updated_at = now() - interval '1 hour'
       returning 1$$,
-  'a stale evidence path swaps no visit row'
+  'a stale version swaps no visit row'
 );
 
 select isnt_empty(
   $$update public.visits
       set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
       where user_id = '44444444-4444-4444-4444-444444444444'
-        and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
+        and updated_at = (
+          select updated_at
+          from public.visits
+          where user_id = '44444444-4444-4444-4444-444444444444'
+        )
       returning 1$$,
-  'the current evidence path swaps the visit row'
+  'the current version swaps the visit row'
 );
 
 reset role;
+
+-- The trigger must move the token on every write, or a stale submission would
+-- still match after the first one landed. now() is transaction-scoped, so this
+-- has to backdate the row first: comparing updated_at against created_at inside
+-- one transaction compares two reads of the same clock and proves nothing.
+update public.visits
+set updated_at = now() - interval '1 hour'
+where user_id = '44444444-4444-4444-4444-444444444444';
+
+update public.visits
+set visited_on = current_date
+where user_id = '44444444-4444-4444-4444-444444444444';
+
+select is_empty(
+  $$select 1
+    from public.visits
+    where user_id = '44444444-4444-4444-4444-444444444444'
+      and updated_at < now() - interval '1 minute'$$,
+  'the trigger advances the version on every write'
+);
 
 -- Only this one is old enough to be reclaimable; every other object was created
 -- in this transaction, so the age floor must keep them all out.

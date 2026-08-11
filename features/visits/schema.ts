@@ -54,6 +54,13 @@ export const visitInputSchema = z
     rating: nullableRating,
     restaurantId: z.string().uuid(),
     reviewBody: nullableReviewBody,
+    // The visits.updated_at the form was rendered with, echoed back so the write
+    // can refuse to land on a row that has moved since. Genuinely absent for a
+    // first visit, so a missing field is null rather than an error.
+    visitVersion: z.preprocess(
+      (value) => (value === undefined ? null : trimmedStringOrNull(value)),
+      z.string().max(64).nullable(),
+    ),
     visitedOn: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)

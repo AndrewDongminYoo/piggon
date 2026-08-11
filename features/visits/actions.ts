@@ -182,6 +182,7 @@ export async function upsertVisit(
     rating: getText(formData, "rating"),
     restaurantId: getText(formData, "restaurantId"),
     reviewBody: getText(formData, "reviewBody"),
+    visitVersion: getText(formData, "visitVersion"),
     visitedOn: getText(formData, "visitedOn"),
   });
 
@@ -284,28 +285,33 @@ export async function upsertVisit(
     visited_on: parsed.data.visitedOn,
   };
 
-  // The update is a compare-and-swap on the evidence we just read. Two tabs
-  // replacing the same photo would otherwise both read the old path, write
-  // different new ones, and both clean up only the shared old path — stranding
-  // the loser's uploaded object. Losing the swap matches no row, so that request
-  // fails and its upload is rolled back through discardUploadedVisitPhoto.
-  const visitWrite = !previousVisit
-    ? supabase.from("visits").insert({
-        ...visitFields,
-        restaurant_id: restaurant.id,
-        user_id: user.id,
-      })
-    : previousVisit.photo_path === null
+  // The update is a compare-and-swap on the version the form was rendered with,
+  // not on what the server just re-read — those differ exactly when another tab
+  // has written in between, which is the case that must fail. Swapping on
+  // photo_path only caught the photo-shaped instance: a tab that had already
+  // moved the visit to Instagram left photo_path null, and a stale photo form
+  // could then reattach a path the other request was about to delete.
+  if (previousVisit && !parsed.data.visitVersion) {
+    return {
+      message:
+        "이 방문 인증을 다시 불러와 주세요. 새로고침한 뒤 다시 시도해 주세요.",
+      photoPath: parsed.data.photoPath,
+      status: "error",
+    };
+  }
+
+  const visitWrite =
+    previousVisit && parsed.data.visitVersion
       ? supabase
           .from("visits")
           .update(visitFields)
           .eq("id", previousVisit.id)
-          .is("photo_path", null)
-      : supabase
-          .from("visits")
-          .update(visitFields)
-          .eq("id", previousVisit.id)
-          .eq("photo_path", previousVisit.photo_path);
+          .eq("updated_at", parsed.data.visitVersion)
+      : supabase.from("visits").insert({
+          ...visitFields,
+          restaurant_id: restaurant.id,
+          user_id: user.id,
+        });
 
   const { data: visit, error: visitError } = await visitWrite
     .select("id, photo_path")

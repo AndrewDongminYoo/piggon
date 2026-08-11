@@ -224,6 +224,13 @@ export function VisitForm({
     <div className="visit-form-wrap">
       <form action={action} className="visit-form">
         <input name="restaurantId" type="hidden" value={restaurantId} />
+        {/* Version this form was rendered with; the write refuses to land if the
+            visit has moved since, so a stale tab cannot revert another's edit. */}
+        <input
+          name="visitVersion"
+          type="hidden"
+          value={existingVisit?.updatedAt ?? ""}
+        />
 
         <fieldset>
           <legend>방문 인증 방식</legend>
