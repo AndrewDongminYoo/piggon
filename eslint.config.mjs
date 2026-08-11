@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "supabase/.branches/**",
+    "supabase/.temp/**",
   ]),
   {
     // Keep LAST so it wins the settings merge over eslint-config-next.

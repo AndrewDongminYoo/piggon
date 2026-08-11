@@ -1,6 +1,19 @@
 # Piggon MVP Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+## Status
+
+Completed. Every task below landed on `feat/piggon-mvp`, from `build: add Supabase and test foundation` through `ci: add Piggon release gates`; the unchecked boxes are a historical record, not remaining work.
+Read this plan for the reasoning behind a decision, not as the current state of the code.
+The steps below are preserved as written except for renamed identifiers, which are normalized to the names the code uses today — `SUPABASE_SECRET_KEY`, not the `SUPABASE_SERVICE_ROLE_KEY` this plan was drafted against.
+
+The code has since moved past several snippets here:
+
+- `requireAdmin()` additionally requires `app_metadata.provider === "google"` and a confirmed email, extracted as the pure `isAuthorizedGoogleAdmin` in `features/admin/admin-auth.ts`.
+- Multi-table admin writes run through the `save_restaurant_with_attributes` and `upsert_video_with_restaurants` RPCs instead of sequential client-side statements.
+- Visit dates are derived in `Asia/Seoul`, and failed evidence deletion is queued in `visit_photo_cleanup_jobs` for bounded retry.
+- `db:types` pipes the generated file through `trunk fmt`, and CI pins `supabase/setup-cli` to 2.113.0.
+
+> **For agentic workers:** this plan is complete — do not re-execute it. It was originally written for superpowers:subagent-driven-development or superpowers:executing-plans, and steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build and deploy the approved Piggon MVP with a responsive Kakao Map restaurant atlas, Google-authenticated visit records and reviews, and a single-owner administration surface.
 
@@ -63,7 +76,7 @@
 **Interfaces:**
 
 - Produces: `getPublicEnv(): { supabaseUrl: string; supabasePublishableKey: string; kakaoMapAppKey: string }`.
-- Produces: `getServerEnv(): { supabaseServiceRoleKey: string; adminGoogleEmail: string }`.
+- Produces: `getServerEnv(): { supabaseSecretKey: string; adminGoogleEmail: string }`.
 - Produces: package scripts `test`, `test:watch`, `db:start`, `db:reset`, `db:test`, and `db:types`.
 
 - [ ] **Step 1: Write failing environment parsing tests**
@@ -91,7 +104,7 @@ describe("environment parsing", () => {
   it("rejects an invalid administrator email", () => {
     expect(() =>
       parseServerEnv({
-        SUPABASE_SERVICE_ROLE_KEY: "service-role-key",
+        SUPABASE_SECRET_KEY: "secret-key",
         ADMIN_GOOGLE_EMAIL: "not-an-email",
       }),
     ).toThrow();
@@ -155,7 +168,7 @@ export function getPublicEnv() {
 ```
 
 Implement the pure `parseServerEnv` function in `lib/env/server-schema.ts` so Vitest can exercise it without importing a server-boundary sentinel.
-Implement `lib/env/server.ts` with `import "server-only"`; it passes `SUPABASE_SERVICE_ROLE_KEY` and a normalized lowercase `ADMIN_GOOGLE_EMAIL` into that pure parser.
+Implement `lib/env/server.ts` with `import "server-only"`; it passes `SUPABASE_SECRET_KEY` and a normalized lowercase `ADMIN_GOOGLE_EMAIL` into that pure parser.
 List all five keys with empty values in `.env.example`; never include real credentials.
 Add `!.env.example` immediately after the existing `.env*` rule in `.gitignore` so the template can be reviewed and committed while every real environment file remains ignored.
 
@@ -487,7 +500,7 @@ Run: `pnpm test -- lib/auth/redirect.test.ts`
 Expected: PASS.
 Run: `pnpm lint`
 Expected: exit 0.
-Run: `env NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_build_only NEXT_PUBLIC_KAKAO_MAP_APP_KEY=kakao-build-only SUPABASE_SERVICE_ROLE_KEY=service-role-build-only ADMIN_GOOGLE_EMAIL=admin@example.com pnpm build`
+Run: `env NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_build_only NEXT_PUBLIC_KAKAO_MAP_APP_KEY=kakao-build-only SUPABASE_SECRET_KEY=secret-build-only ADMIN_GOOGLE_EMAIL=admin@example.com pnpm build`
 Expected: exit 0 using only disposable build-time values.
 
 ```bash
@@ -1126,7 +1139,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_build_only
           NEXT_PUBLIC_KAKAO_MAP_APP_KEY: kakao-build-only
-          SUPABASE_SERVICE_ROLE_KEY: service-role-build-only
+          SUPABASE_SECRET_KEY: secret-build-only
           ADMIN_GOOGLE_EMAIL: admin@example.com
 
   database:
@@ -1177,7 +1190,7 @@ git commit -m "ci: add Piggon release gates"
 Create or link the Supabase project, run `pnpm supabase projects list` to confirm the target, run `pnpm supabase db push --dry-run`, review the exact migration set, and then run `pnpm supabase db push`.
 Enable Google Auth with only `openid`, email, and profile scopes and configure local, preview, and production redirect allowlists.
 Register localhost, Vercel preview, and Vercel production origins for the Kakao JavaScript key.
-Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_GOOGLE_EMAIL` in Vercel Development, Preview, and Production environments.
+Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`, `SUPABASE_SECRET_KEY`, and `ADMIN_GOOGLE_EMAIL` in Vercel Development, Preview, and Production environments.
 
 - [ ] **Step 8: Deploy preview, verify, and promote production**
 

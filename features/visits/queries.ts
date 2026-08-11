@@ -1,0 +1,352 @@
+import "server-only";
+
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+
+import {
+  getCollectionRestaurant,
+  type CollectionRestaurant,
+} from "./collection";
+import { isOwnedVisitPhotoPath, VISIT_EVIDENCE_BUCKET } from "./storage";
+
+export type VisitReview = {
+  body: string;
+  id: string;
+  rating: number;
+  updatedAt: string;
+};
+
+export type PublicVisit = {
+  displayName: string;
+  evidenceType: "photo" | "instagram";
+  id: string;
+  instagramUrl: string | null;
+  photoUrl: string | null;
+  review: VisitReview | null;
+  visitedOn: string;
+};
+
+export type ViewerProfile = {
+  displayName: string;
+};
+
+export type ViewerVisit = {
+  evidenceType: "photo" | "instagram";
+  // Moderation state, shown only to the owner. New content inherits a standing
+  // moderation decision, so the owner has to be able to see that it applies —
+  // otherwise inheriting it silently would be a shadow ban.
+  hidden: boolean;
+  id: string;
+  instagramUrl: string | null;
+  photoPath: string | null;
+  photoUrl: string | null;
+  review: VisitReview | null;
+  reviewHidden: boolean;
+  // Optimistic-concurrency token. The form submits the value it rendered with,
+  // and the write only lands if the row has not moved since — so a stale tab
+  // fails instead of silently reverting whatever changed in the meantime.
+  updatedAt: string;
+  visitedOn: string;
+};
+
+export type UserCollectionItem = ViewerVisit & {
+  restaurant: CollectionRestaurant;
+};
+
+type VisitRow = {
+  evidence_type: "photo" | "instagram";
+  hidden: boolean;
+  id: string;
+  instagram_url: string | null;
+  photo_path: string | null;
+  restaurant_id: string;
+  updated_at: string;
+  user_id: string;
+  visited_on: string;
+};
+
+type PublicVisitRow = Pick<
+  VisitRow,
+  "evidence_type" | "id" | "instagram_url" | "user_id" | "visited_on"
+>;
+
+type ReviewRow = {
+  body: string;
+  hidden: boolean;
+  id: string;
+  rating: number;
+  updated_at: string;
+  visit_id: string;
+};
+
+function mapReview(review: ReviewRow | undefined): VisitReview | null {
+  return review
+    ? {
+        body: review.body,
+        id: review.id,
+        rating: review.rating,
+        updatedAt: review.updated_at,
+      }
+    : null;
+}
+
+export async function createVisitPhotoUrlMap(
+  rows: Array<{
+    id: string;
+    photo_path: string | null;
+    restaurant_id: string;
+    user_id: string;
+  }>,
+): Promise<Map<string, string>> {
+  const photoRows = rows.filter(
+    (
+      row,
+    ): row is {
+      id: string;
+      photo_path: string;
+      restaurant_id: string;
+      user_id: string;
+    } =>
+      row.photo_path !== null &&
+      isOwnedVisitPhotoPath(row.photo_path, row.user_id, row.restaurant_id),
+  );
+  if (photoRows.length === 0) {
+    return new Map();
+  }
+
+  const admin = createAdminClient();
+  const entries = await Promise.all(
+    photoRows.map(async ({ id, photo_path }) => {
+      const { data, error } = await admin.storage
+        .from(VISIT_EVIDENCE_BUCKET)
+        .createSignedUrl(photo_path, 300);
+      if (error) {
+        console.error("Unable to sign visit evidence", {
+          error: error.message,
+          visitId: id,
+        });
+      }
+      return [id, error ? null : data.signedUrl] as const;
+    }),
+  );
+
+  return new Map(
+    entries.filter(
+      (entry): entry is readonly [string, string] => entry[1] !== null,
+    ),
+  );
+}
+
+export async function getViewerProfile(
+  userId: string,
+): Promise<ViewerProfile | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Unable to load viewer profile", { cause: error });
+  }
+
+  return data ? { displayName: data.display_name } : null;
+}
+
+export async function getViewerVisit(
+  restaurantId: string,
+  userId: string,
+): Promise<ViewerVisit | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("visits")
+    .select(
+      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at, hidden",
+    )
+    .eq("restaurant_id", restaurantId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Unable to load viewer visit", { cause: error });
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const [{ data: review, error: reviewError }, photoUrls] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select("id, visit_id, rating, body, updated_at, hidden")
+      .eq("visit_id", data.id)
+      .maybeSingle(),
+    createVisitPhotoUrlMap([data]),
+  ]);
+
+  if (reviewError) {
+    throw new Error("Unable to load viewer review", { cause: reviewError });
+  }
+
+  return {
+    evidenceType: data.evidence_type,
+    hidden: data.hidden,
+    id: data.id,
+    instagramUrl: data.instagram_url,
+    photoPath: data.photo_path,
+    photoUrl: photoUrls.get(data.id) ?? null,
+    review: mapReview(review ?? undefined),
+    reviewHidden: review?.hidden ?? false,
+    updatedAt: data.updated_at,
+    visitedOn: data.visited_on,
+  };
+}
+
+export async function getPublicRestaurantCommunity(
+  restaurantId: string,
+): Promise<PublicVisit[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("visits")
+    .select("id, user_id, visited_on, evidence_type, instagram_url")
+    .eq("restaurant_id", restaurantId)
+    .eq("hidden", false)
+    .order("visited_on", { ascending: false });
+
+  if (error) {
+    throw new Error("Unable to load public visits", { cause: error });
+  }
+
+  const visits = data as PublicVisitRow[];
+  if (visits.length === 0) {
+    return [];
+  }
+
+  const userIds = [...new Set(visits.map((visit) => visit.user_id))];
+  const visitIds = visits.map((visit) => visit.id);
+  const [
+    { data: profiles, error: profileError },
+    { data: reviews, error: reviewError },
+  ] = await Promise.all([
+    supabase.from("profiles").select("id, display_name").in("id", userIds),
+    supabase
+      .from("reviews")
+      .select("id, visit_id, rating, body, updated_at, hidden")
+      .in("visit_id", visitIds)
+      .eq("hidden", false),
+  ]);
+
+  if (profileError || reviewError) {
+    throw new Error("Unable to load public visit details", {
+      cause: profileError ?? reviewError,
+    });
+  }
+
+  const profileByUserId = new Map(
+    (profiles ?? []).map((profile) => [profile.id, profile.display_name]),
+  );
+  const reviewByVisitId = new Map(
+    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review]),
+  );
+
+  return visits.flatMap((visit) => {
+    const displayName = profileByUserId.get(visit.user_id);
+    if (!displayName) {
+      return [];
+    }
+
+    return [
+      {
+        displayName,
+        evidenceType: visit.evidence_type,
+        id: visit.id,
+        instagramUrl: visit.instagram_url,
+        photoUrl: null,
+        review: mapReview(reviewByVisitId.get(visit.id)),
+        visitedOn: visit.visited_on,
+      },
+    ];
+  });
+}
+
+export async function listUserCollection(
+  userId: string,
+): Promise<UserCollectionItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("visits")
+    .select(
+      `
+        id,
+        user_id,
+        restaurant_id,
+        visited_on,
+        evidence_type,
+        photo_path,
+        instagram_url,
+        updated_at,
+        hidden,
+        restaurants (
+          id,
+          slug,
+          name,
+          region,
+          status
+        )
+      `,
+    )
+    .eq("user_id", userId)
+    .order("visited_on", { ascending: false });
+
+  if (error) {
+    throw new Error("Unable to load user collection", { cause: error });
+  }
+
+  type CollectionRow = VisitRow & {
+    restaurants: {
+      id: string;
+      name: string;
+      region: string;
+      slug: string;
+    } | null;
+  };
+
+  const visits = data as unknown as CollectionRow[];
+  if (visits.length === 0) {
+    return [];
+  }
+
+  const [{ data: reviews, error: reviewError }, photoUrls] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select("id, visit_id, rating, body, updated_at, hidden")
+      .in(
+        "visit_id",
+        visits.map((visit) => visit.id),
+      ),
+    createVisitPhotoUrlMap(visits),
+  ]);
+
+  if (reviewError) {
+    throw new Error("Unable to load user reviews", { cause: reviewError });
+  }
+
+  const reviewByVisitId = new Map(
+    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review]),
+  );
+
+  return visits.map((visit) => ({
+    evidenceType: visit.evidence_type,
+    hidden: visit.hidden,
+    id: visit.id,
+    instagramUrl: visit.instagram_url,
+    photoPath: visit.photo_path,
+    photoUrl: photoUrls.get(visit.id) ?? null,
+    restaurant: getCollectionRestaurant(visit.restaurant_id, visit.restaurants),
+    review: mapReview(reviewByVisitId.get(visit.id)),
+    reviewHidden: reviewByVisitId.get(visit.id)?.hidden ?? false,
+    updatedAt: visit.updated_at,
+    visitedOn: visit.visited_on,
+  }));
+}

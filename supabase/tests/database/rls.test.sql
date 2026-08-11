@@ -1,0 +1,294 @@
+begin;
+
+select plan(23);
+
+insert into auth.users (id, email, aud, role)
+values
+  ('11111111-1111-1111-1111-111111111111', 'owner@example.com', 'authenticated', 'authenticated'),
+  ('22222222-2222-2222-2222-222222222222', 'other@example.com', 'authenticated', 'authenticated'),
+  ('33333333-3333-3333-3333-333333333333', 'no-profile@example.com', 'authenticated', 'authenticated');
+
+insert into public.profiles (id, display_name)
+values
+  ('11111111-1111-1111-1111-111111111111', '피자러버'),
+  ('22222222-2222-2222-2222-222222222222', '도우마스터');
+
+insert into public.restaurants (id, slug, name, region, status)
+values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'published-test', '공개 테스트', '서울', 'published'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'draft-test', '초안 테스트', '서울', 'draft');
+
+insert into public.visits (
+  id,
+  user_id,
+  restaurant_id,
+  visited_on,
+  evidence_type,
+  instagram_url
+)
+values (
+  'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  '22222222-2222-2222-2222-222222222222',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  current_date,
+  'instagram',
+  'https://www.instagram.com/p/other-example/'
+);
+
+insert into public.reviews (id, visit_id, rating, body)
+values (
+  'dddddddd-dddd-dddd-dddd-dddddddddddd',
+  'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  4,
+  '공개 리뷰'
+);
+
+set local role anon;
+
+select results_eq(
+  $$select slug from public.restaurants where slug in ('draft-test', 'published-test') order by slug$$,
+  array['published-test'::text],
+  'anonymous users see only the published restaurant in the test fixture'
+);
+
+select results_eq(
+  $$select count(*) from public.restaurants where slug = 'draft-test'$$,
+  array[0::bigint],
+  'anonymous users cannot see drafts'
+);
+
+select results_eq(
+  $$select count(*) from public.profiles where id = '22222222-2222-2222-2222-222222222222'$$,
+  array[1::bigint],
+  'a profile with a visible visit is public'
+);
+
+set local role authenticated;
+set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+
+select lives_ok(
+  $$insert into public.visits (id, user_id, restaurant_id, visited_on, evidence_type, instagram_url)
+    values (
+      'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      '11111111-1111-1111-1111-111111111111',
+      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      current_date,
+      'instagram',
+      'https://www.instagram.com/p/owner-example/'
+    )$$,
+  'an owner can create a visit'
+);
+
+select lives_ok(
+  $$update public.visits
+    set visited_on = current_date - 1
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  'an owner can update their visit'
+);
+
+select throws_ok(
+  $$update public.visits
+    set instagram_url = 'https://attacker.example/not-instagram'
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '23514',
+  null,
+  'an owner cannot store a non-Instagram evidence URL'
+);
+
+select throws_ok(
+  $$update public.visits
+    set visited_on = current_date + 1
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '23514',
+  null,
+  'an owner cannot store a future visit date'
+);
+
+select ok(
+  position(
+    'Asia/Seoul' in (
+      select pg_get_constraintdef(oid)
+      from pg_constraint
+      where conname = 'visits_not_future_check'
+        and conrelid = 'public.visits'::regclass
+    )
+  ) > 0,
+  'the visit date constraint follows the Seoul calendar date'
+);
+
+select results_eq(
+  $$update public.visits
+    set visited_on = current_date - 1
+    where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+    returning 1$$,
+  $$select 1 where false$$,
+  'a user cannot update another visit'
+);
+
+-- Two independent guards reject this, and they fire in different places. For an
+-- ordinary user the policy gets there first, because it requires an object the
+-- caller owns at that path (42501). The table constraint that checks the path
+-- belongs to this user and restaurant is asserted separately below, under a role
+-- that bypasses RLS, so neither guard can quietly stop carrying its weight.
+select throws_ok(
+  $$update public.visits
+    set evidence_type = 'photo',
+        photo_path = '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+        instagram_url = null
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '42501',
+  null,
+  'an owner cannot attach another users storage path'
+);
+
+select lives_ok(
+  $$insert into public.reviews (visit_id, rating, body)
+    values ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 5, '내 리뷰')$$,
+  'an owner can create a review for their visit'
+);
+
+select lives_ok(
+  $$update public.reviews
+    set body = '수정한 내 리뷰', rating = 4
+    where visit_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  'an owner can update review content without moderation columns'
+);
+
+reset role;
+
+-- The other half of the pair above: service_role bypasses RLS, so this reaches
+-- the table constraint and proves the path-ownership check is still doing work
+-- rather than being masked by the policy that now fires first for users.
+set local role service_role;
+
+select throws_ok(
+  $$update public.visits
+    set evidence_type = 'photo',
+        photo_path = '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+        instagram_url = null
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '23514',
+  null,
+  'the path ownership constraint still rejects a foreign path'
+);
+
+reset role;
+
+update public.visits
+set hidden = true
+where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+
+update public.reviews
+set hidden = true
+where visit_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+
+set local role authenticated;
+set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+
+select throws_ok(
+  $$update public.visits
+    set hidden = false
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '42501',
+  null,
+  'an owner cannot override visit moderation state'
+);
+
+select throws_ok(
+  $$update public.reviews
+    set hidden = false
+    where visit_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'$$,
+  '42501',
+  null,
+  'an owner cannot override review moderation state'
+);
+
+select results_eq(
+  $$update public.reviews
+    set body = '수정 시도'
+    where id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
+    returning 1$$,
+  $$select 1 where false$$,
+  'a user cannot update another review'
+);
+
+set local request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
+
+select throws_ok(
+  $$insert into public.visits (user_id, restaurant_id, visited_on, evidence_type, instagram_url)
+    values (
+      '33333333-3333-3333-3333-333333333333',
+      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      current_date,
+      'instagram',
+      'https://www.instagram.com/p/no-profile/'
+    )$$,
+  '42501',
+  null,
+  'a user must create a public profile before recording a visit'
+);
+
+set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+
+select lives_ok(
+  $$insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'visit-evidence',
+      '11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+      '11111111-1111-1111-1111-111111111111',
+      '11111111-1111-1111-1111-111111111111'
+    )$$,
+  'an owner can create an object in their folder'
+);
+
+select throws_ok(
+  $$insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'visit-evidence',
+      '22222222-2222-2222-2222-222222222222/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/file.webp',
+      '11111111-1111-1111-1111-111111111111',
+      '11111111-1111-1111-1111-111111111111'
+    )$$,
+  '42501',
+  null,
+  'a user cannot create an object in another folder'
+);
+
+reset role;
+
+update public.visits
+set hidden = true
+where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+set local role anon;
+
+select results_eq(
+  $$select count(*) from public.visits where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'$$,
+  array[0::bigint],
+  'anonymous users cannot see a hidden visit'
+);
+
+select results_eq(
+  $$select count(*) from public.reviews where id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'$$,
+  array[0::bigint],
+  'anonymous users cannot see a review under a hidden visit'
+);
+
+select results_eq(
+  $$select count(*) from public.profiles where id = '22222222-2222-2222-2222-222222222222'$$,
+  array[0::bigint],
+  'a profile without a visible visit is not public'
+);
+
+set local role authenticated;
+set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+
+select results_eq(
+  $$select count(*) from public.visits where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'$$,
+  array[1::bigint],
+  'an owner retains access to their hidden visit'
+);
+
+select * from finish();
+
+rollback;
