@@ -1,6 +1,6 @@
 begin;
 
-select plan(9);
+select plan(11);
 
 select has_function(
   'public',
@@ -99,6 +99,23 @@ select results_eq(
   $$select public.current_user_visit_evidence_count()$$,
   array[50::bigint],
   'the quota helper counts owned evidence'
+);
+
+select volatility_is(
+  'public',
+  'current_user_visit_evidence_count',
+  'volatile',
+  'the quota helper is not cached across a statement'
+);
+
+-- Proves the count is serialized rather than merely correct: without the per-user
+-- transaction lock, concurrent uploaders each read the same pre-insert total.
+select isnt_empty(
+  $$select 1
+    from pg_locks
+    where locktype = 'advisory'
+      and pid = pg_backend_pid()$$,
+  'evaluating the quota holds a per-user advisory lock'
 );
 
 select throws_ok(
