@@ -37,6 +37,18 @@ export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
           ← 맛집 지도로
         </Link>
       )}
+      {/* The panel shows the restaurant but not the visit form or the reviews,
+          which only the full page renders. Without this the desktop and list
+          flows dead-end: the visit action is reachable only by copying the link
+          and opening it by hand. Lives here so every panel usage gets it. */}
+      {onBack ? (
+        <Link
+          className="detail-open"
+          href={`/restaurants/${encodeURIComponent(restaurantSlug)}`}
+        >
+          방문 인증하러 가기 →
+        </Link>
+      ) : null}
       <button className="detail-share" onClick={copyDetailLink} type="button">
         {copyState === "copied"
           ? "링크 복사 완료"

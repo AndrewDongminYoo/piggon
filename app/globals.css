@@ -834,6 +834,7 @@ textarea:focus-visible {
 }
 
 .detail-back,
+.detail-open,
 .detail-share {
   background: var(--paper);
   border: 2px solid var(--ink);
@@ -846,9 +847,15 @@ textarea:focus-visible {
   text-decoration: none;
 }
 
+.detail-open,
 .detail-share {
   background: var(--cheese);
   box-shadow: 2px 2px 0 var(--ink);
+}
+
+.detail-open {
+  background: var(--basil);
+  color: var(--paper);
 }
 
 .restaurant-detail__header h1,
