@@ -1,6 +1,6 @@
 begin;
 
-select plan(11);
+select plan(14);
 
 select has_function(
   'public',
@@ -129,7 +129,9 @@ select isnt_empty(
   'evaluating the quota holds the per-user advisory lock'
 );
 
-select throws_ok(
+-- Replacement uploads the new object while the old one is still referenced, so a
+-- user sitting exactly at the cap must still be able to put one object in flight.
+select lives_ok(
   $$insert into storage.objects (bucket_id, name, owner, owner_id)
     values (
       'visit-evidence',
@@ -137,9 +139,56 @@ select throws_ok(
       '44444444-4444-4444-4444-444444444444',
       '44444444-4444-4444-4444-444444444444'
     )$$,
+  'an owner at the cap can still upload one replacement'
+);
+
+select throws_ok(
+  $$insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'visit-evidence',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-52.webp',
+      '44444444-4444-4444-4444-444444444444',
+      '44444444-4444-4444-4444-444444444444'
+    )$$,
   '42501',
   null,
-  'the evidence quota rejects an additional direct upload'
+  'the evidence quota rejects an upload past the replacement slot'
+);
+
+insert into public.visits (
+  user_id,
+  restaurant_id,
+  visited_on,
+  evidence_type,
+  photo_path
+)
+values (
+  '44444444-4444-4444-4444-444444444444',
+  'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  current_date,
+  'photo',
+  '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
+);
+
+-- Backs the compare-and-swap in upsertVisit: the loser of a concurrent photo
+-- replacement holds a stale path, so its guarded update must match no row rather
+-- than overwrite the winner and strand the winner's object.
+select is_empty(
+  $$update public.visits
+      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-51.webp'
+      where user_id = '44444444-4444-4444-4444-444444444444'
+        and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-9.webp'
+      returning 1$$,
+  'a stale evidence path swaps no visit row'
+);
+
+select isnt_empty(
+  $$update public.visits
+      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-51.webp'
+      where user_id = '44444444-4444-4444-4444-444444444444'
+        and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
+      returning 1$$,
+  'the current evidence path swaps the visit row'
 );
 
 select * from finish();
