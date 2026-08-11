@@ -78,22 +78,97 @@ describe("visit photo storage", () => {
     ).toBe(false);
   });
 
+  const png = (body: number[] = []) =>
+    Uint8Array.from([
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a,
+      0,
+      0,
+      0,
+      13,
+      0x49,
+      0x48,
+      0x44,
+      0x52,
+      ...body,
+      0x49,
+      0x45,
+      0x4e,
+      0x44,
+      0xae,
+      0x42,
+      0x60,
+      0x82,
+    ]);
+  const jpeg = (body: number[] = []) =>
+    Uint8Array.from([0xff, 0xd8, 0xff, ...body, 0xff, 0xd9]);
+  const webp = (body: number[] = []) =>
+    Uint8Array.from([
+      0x52,
+      0x49,
+      0x46,
+      0x46,
+      4 + body.length,
+      0,
+      0,
+      0,
+      0x57,
+      0x45,
+      0x42,
+      0x50,
+      ...body,
+    ]);
+
   it("detects supported images from file signatures", () => {
+    expect(detectImageMediaType(png())).toBe("image/png");
+    expect(detectImageMediaType(jpeg())).toBe("image/jpeg");
+    expect(detectImageMediaType(webp())).toBe("image/webp");
+  });
+
+  // A header glued onto arbitrary data is the reachable forgery: it satisfies a
+  // prefix check while being unrenderable, and the write policy trusts whatever
+  // this returns.
+  it("rejects a valid header followed by arbitrary bytes", () => {
+    expect(
+      detectImageMediaType(Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 3])),
+    ).toBeNull();
     expect(
       detectImageMediaType(
-        Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        Uint8Array.from([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3,
+        ]),
       ),
-    ).toBe("image/png");
-    expect(detectImageMediaType(Uint8Array.from([0xff, 0xd8, 0xff]))).toBe(
-      "image/jpeg",
-    );
+    ).toBeNull();
     expect(
       detectImageMediaType(
         Uint8Array.from([
           0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
         ]),
       ),
-    ).toBe("image/webp");
+    ).toBeNull();
+  });
+
+  // Real encoders pad with zeros after EOI, so rejecting that would reject
+  // legitimate photos — a worse failure than the forgery being prevented.
+  it("accepts a JPEG padded with trailing zeros", () => {
+    expect(
+      detectImageMediaType(
+        Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 0xff, 0xd9, 0, 0, 0]),
+      ),
+    ).toBe("image/jpeg");
+  });
+
+  it("rejects a WebP whose declared size disagrees with the payload", () => {
+    const bytes = webp([1, 2, 3, 4]);
+    bytes[4] = 99;
+
+    expect(detectImageMediaType(bytes)).toBeNull();
   });
 
   it("rejects content without a supported signature", () => {
