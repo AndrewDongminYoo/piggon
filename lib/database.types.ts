@@ -506,7 +506,7 @@ export type Database = {
       };
       lock_visit_evidence: { Args: { p_user_id: string }; Returns: undefined };
       record_visit_evidence_validation: {
-        Args: { p_path: string; p_user_id: string };
+        Args: { p_expected_version: string; p_path: string; p_user_id: string };
         Returns: boolean;
       };
       save_restaurant_with_attributes: {
@@ -540,6 +540,10 @@ export type Database = {
       visit_evidence_is_validated: {
         Args: { p_path: string };
         Returns: boolean;
+      };
+      visit_evidence_version: {
+        Args: { p_path: string; p_user_id: string };
+        Returns: string;
       };
     };
     Enums: {

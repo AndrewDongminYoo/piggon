@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/require-user";
 import { createClient } from "@/lib/supabase/server";
 
-import { recordValidatedVisitEvidence } from "./evidence-validation-server";
+import {
+  readVisitEvidenceVersion,
+  recordValidatedVisitEvidence,
+} from "./evidence-validation-server";
 import { getReviewMutation } from "./review-mutation";
 import {
   cleanupStoredVisitPhoto,
@@ -246,6 +249,21 @@ export async function upsertVisit(
       };
     }
 
+    // Pinned before the download so the bytes checked below and the version
+    // recorded afterwards describe the same object.
+    const evidenceVersion = await readVisitEvidenceVersion(
+      parsed.data.photoPath,
+      user.id,
+    );
+
+    if (evidenceVersion === null) {
+      return {
+        message: "업로드한 사진을 확인하지 못했습니다.",
+        photoPath: parsed.data.photoPath,
+        status: "error",
+      };
+    }
+
     const { data: photo, error: downloadError } = await supabase.storage
       .from(VISIT_EVIDENCE_BUCKET)
       .download(parsed.data.photoPath);
@@ -271,8 +289,15 @@ export async function upsertVisit(
     }
 
     // The signature check above is application code, so the write policy cannot
-    // see it. Recording the result is what lets the policy require it.
-    if (!(await recordValidatedVisitEvidence(parsed.data.photoPath, user.id))) {
+    // see it. Recording the result is what lets the policy require it — against
+    // the pinned version, so an overwrite in between invalidates the attempt.
+    if (
+      !(await recordValidatedVisitEvidence(
+        parsed.data.photoPath,
+        user.id,
+        evidenceVersion,
+      ))
+    ) {
       return {
         message: "업로드한 사진을 확인하지 못했습니다.",
         photoPath: parsed.data.photoPath,

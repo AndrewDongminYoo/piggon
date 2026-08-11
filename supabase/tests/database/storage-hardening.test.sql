@@ -1,6 +1,6 @@
 begin;
 
-select plan(36);
+select plan(37);
 
 select has_function(
   'public',
@@ -200,10 +200,26 @@ select throws_ok(
 
 reset role;
 
+-- Recording is pinned to the version the server read before downloading. A stale
+-- pin means the bytes were replaced after they were inspected, so certifying them
+-- would certify whatever replaced them.
+select ok(
+  not public.record_visit_evidence_validation(
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp',
+    '44444444-4444-4444-4444-444444444444',
+    'a-version-that-was-replaced'
+  ),
+  'validating bytes that moved since they were read is refused'
+);
+
 select ok(
   public.record_visit_evidence_validation(
     '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp',
-    '44444444-4444-4444-4444-444444444444'
+    '44444444-4444-4444-4444-444444444444',
+    public.visit_evidence_version(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp',
+      '44444444-4444-4444-4444-444444444444'
+    )
   ),
   'the server can record what it validated'
 );
@@ -211,7 +227,11 @@ select ok(
 select ok(
   public.record_visit_evidence_validation(
     '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp',
-    '44444444-4444-4444-4444-444444444444'
+    '44444444-4444-4444-4444-444444444444',
+    public.visit_evidence_version(
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp',
+      '44444444-4444-4444-4444-444444444444'
+    )
   ),
   'the server can record a validated replacement'
 );
