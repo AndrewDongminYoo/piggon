@@ -261,7 +261,11 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                 maxLength={2048}
                 name="youtubeUrl"
                 onChange={(event) => {
-                  setSelectedVideoId("");
+                  // Deliberately does not clear selectedVideoId. That is the
+                  // identity of the video being edited, and only the picker above
+                  // may change it — clearing it here made an edit look like a new
+                  // video to the server, which is exactly the case its guard
+                  // exists to refuse.
                   setYouTubeUrl(event.target.value);
                   setTitle("");
                   setThumbnailUrl("");
