@@ -78,7 +78,14 @@ The [Supabase Google login guide](https://supabase.com/docs/guides/auth/social-l
 2. Add `http://localhost:3000` and the intended preview and production origins under Authorized JavaScript origins.
 3. Add the callback shown by the Supabase Google provider page under Authorized redirect URIs.
 4. For a locally configured Google provider, the callback is `http://127.0.0.1:54321/auth/v1/callback`, matching the `[api] port` in `supabase/config.toml`.
-5. Enable Google in Supabase Authentication providers and store the client ID and secret there.
+5. Enable Google in Supabase Authentication providers and store the client ID and secret there. That covers the hosted project only; the local stack reads `[auth.external.google]` from `supabase/config.toml`, so export the client ID and secret before `pnpm db:start` — without them the local provider is advertised but every sign-in is rejected by Google.
+
+   ```bash
+   export SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+   export SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...
+   pnpm db:start
+   ```
+
 6. In Supabase URL Configuration, set the production origin as Site URL and allow `http://localhost:3000/**`, the Vercel preview pattern, and the exact production `/auth/callback` URL.
 
 Supabase recommends `https://*-<team-or-account-slug>.vercel.app/**` for Vercel previews and an exact production redirect path; confirm the final pattern against the [Supabase redirect URL guide](https://supabase.com/docs/guides/auth/redirect-urls).
@@ -93,6 +100,16 @@ The application validates the `next` parameter before redirecting after login, a
 
 The Map Web SDK requires an enabled Kakao Map product and a registered JavaScript SDK domain for the JavaScript key; see the [Kakao Map setup guide](https://developers.kakao.com/docs/en/kakaomap/common) and [Kakao app settings](https://developers.kakao.com/docs/en/app-setting/app).
 If the SDK fails, Piggon keeps the restaurant list available instead of hiding the catalog.
+
+The map panel reports which of the three failures happened, and they need different fixes.
+`지도 설정을 준비 중입니다` means no key reached the browser.
+`카카오 지도를 불러오지 못했습니다` means the SDK request itself was rejected, and the reason is only in that response — fetch it directly to read it:
+
+```bash
+curl -s "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=$NEXT_PUBLIC_KAKAO_MAP_APP_KEY"
+```
+
+A REST API key pasted in place of the JavaScript key answers `appKeyType is REST_API_KEY`, and an unregistered origin is reported separately; the panel cannot tell them apart.
 
 ## Database and RLS
 

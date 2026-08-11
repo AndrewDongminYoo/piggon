@@ -339,6 +339,25 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
+# Google is the only provider Piggon uses. Without this block the local stack
+# answers "Unsupported provider: provider is not enabled" — enabling it in the
+# hosted dashboard does nothing for `supabase start`.
+#
+# Set SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID and _SECRET in your shell before
+# `pnpm db:start`. Left unset the stack still starts, which is what CI does; the
+# unsubstituted env(...) text is then passed to Google verbatim and rejected
+# there, so the provider is advertised but unusable rather than breaking anyone.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+# Overrides the default auth callback URL derived from auth.external_url.
+redirect_uri = ""
+url = ""
+# Required for local sign in with Google auth, per the note in the block above.
+skip_nonce_check = true
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]
