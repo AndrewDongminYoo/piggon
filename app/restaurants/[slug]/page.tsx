@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { RestaurantDetail } from "@/features/restaurants/components/restaurant-detail";
 import { getPublishedRestaurantBySlug } from "@/features/restaurants/queries";
+import { VisitContribution } from "@/features/visits/components/visit-contribution";
 import {
   getPublicRestaurantCommunity,
   getViewerProfile,
@@ -65,14 +66,23 @@ export default async function RestaurantPage({
         visit,
       }))
     : null;
+  const currentDate = getCurrentSeoulDate();
+  const visitContribution = (
+    <VisitContribution
+      currentDate={currentDate}
+      restaurantId={restaurant.id}
+      restaurantSlug={restaurant.slug}
+      viewer={viewer}
+    />
+  );
 
   return (
     <main className="restaurant-detail-page">
       <RestaurantDetail
         community={community}
-        currentDate={getCurrentSeoulDate()}
+        currentDate={currentDate}
         restaurant={restaurant}
-        viewer={viewer}
+        visitContribution={visitContribution}
       />
     </main>
   );

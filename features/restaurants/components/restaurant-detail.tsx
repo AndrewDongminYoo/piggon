@@ -1,20 +1,8 @@
-"use client";
+import type { ReactNode } from "react";
 
-import Link from "next/link";
-import { useState } from "react";
-
-import { GoogleSignIn } from "@/components/auth/google-sign-in";
 import { StampBadge } from "@/components/ui/stamp-badge";
 import { ReviewList } from "@/features/visits/components/review-list";
-import {
-  ProfileForm,
-  VisitForm,
-} from "@/features/visits/components/visit-form";
-import type {
-  PublicVisit,
-  ViewerProfile,
-  ViewerVisit,
-} from "@/features/visits/queries";
+import type { PublicVisit } from "@/features/visits/queries";
 
 import { getAvailabilityState } from "../filters";
 import type {
@@ -22,6 +10,7 @@ import type {
   AvailabilityState,
   RestaurantDetail as RestaurantDetailData,
 } from "../types";
+import { DetailActions } from "./detail-actions";
 import { VideoCard } from "./video-card";
 
 type RestaurantDetailProps = {
@@ -30,14 +19,8 @@ type RestaurantDetailProps = {
   onBack?: () => void;
   restaurant: RestaurantDetailData;
   variant?: "page" | "panel";
-  viewer?: {
-    profile: ViewerProfile | null;
-    userId: string;
-    visit: ViewerVisit | null;
-  } | null;
+  visitContribution?: ReactNode;
 };
-
-type CopyState = "idle" | "copied" | "error";
 
 const AVAILABILITY_COPY: Record<
   AvailabilityState,
@@ -113,9 +96,8 @@ export function RestaurantDetail({
   onBack,
   restaurant,
   variant = "page",
-  viewer,
+  visitContribution,
 }: RestaurantDetailProps) {
-  const [copyState, setCopyState] = useState<CopyState>("idle");
   const availability = getAvailabilityState(
     restaurant.availabilityPeriods,
     currentDate,
@@ -130,44 +112,10 @@ export function RestaurantDetail({
   const Title = variant === "page" ? "h1" : "h2";
   const SectionTitle = variant === "page" ? "h2" : "h3";
 
-  async function copyDetailLink(): Promise<void> {
-    try {
-      const url = new URL(
-        `/restaurants/${encodeURIComponent(restaurant.slug)}`,
-        window.location.origin,
-      );
-      await navigator.clipboard.writeText(url.toString());
-      setCopyState("copied");
-    } catch {
-      setCopyState("error");
-    }
-  }
-
   return (
     <article className={`restaurant-detail restaurant-detail--${variant}`}>
       <header className="restaurant-detail__header">
-        <div className="restaurant-detail__nav">
-          {onBack ? (
-            <button className="detail-back" onClick={onBack} type="button">
-              ← 목록으로
-            </button>
-          ) : (
-            <Link className="detail-back" href="/">
-              ← 맛집 지도로
-            </Link>
-          )}
-          <button
-            className="detail-share"
-            onClick={copyDetailLink}
-            type="button"
-          >
-            {copyState === "copied"
-              ? "링크 복사 완료"
-              : copyState === "error"
-                ? "복사하지 못했어요"
-                : "상세 링크 복사"}
-          </button>
-        </div>
+        <DetailActions onBack={onBack} restaurantSlug={restaurant.slug} />
         <StampBadge tone="tomato">PIZZA FIELD NOTE</StampBadge>
         <Title>{restaurant.name}</Title>
         {restaurant.alternateName ? (
@@ -298,37 +246,11 @@ export function RestaurantDetail({
         </section>
       ) : null}
 
-      {viewer !== undefined ? (
+      {visitContribution !== undefined ? (
         <section className="detail-section detail-visit-form">
           <span>MY PIZZA STAMP</span>
           <SectionTitle>나도 먹어봤어요</SectionTitle>
-          {viewer === null ? (
-            <div className="visit-login-callout">
-              <p>
-                Google 로그인 후 방문 사진이나 공개 Instagram 게시물로 피자
-                발자국을 남길 수 있습니다.
-              </p>
-              <GoogleSignIn nextPath={`/restaurants/${restaurant.slug}`} />
-            </div>
-          ) : viewer.profile === null ? (
-            <div className="visit-profile-callout">
-              <p>방문 인증에 공개될 표시 이름을 먼저 정해 주세요.</p>
-              <ProfileForm />
-            </div>
-          ) : (
-            <>
-              <p className="visit-form-intro">
-                {viewer.profile.displayName}님의 인증은 리워드나 자동 판정 없이
-                커뮤니티 기록으로 공개됩니다.
-              </p>
-              <VisitForm
-                currentDate={currentDate}
-                existingVisit={viewer.visit}
-                restaurantId={restaurant.id}
-                userId={viewer.userId}
-              />
-            </>
-          )}
+          {visitContribution}
         </section>
       ) : null}
 

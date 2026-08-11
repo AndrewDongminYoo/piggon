@@ -1,5 +1,5 @@
 import type { PublicVisit } from "../queries";
-import { VisitCard } from "./visit-card";
+import { PublicVisitCard } from "./public-visit-card";
 
 export function ReviewList({ visits }: { visits: PublicVisit[] }) {
   if (visits.length === 0) {
@@ -13,7 +13,7 @@ export function ReviewList({ visits }: { visits: PublicVisit[] }) {
   return (
     <div className="visit-list">
       {visits.map((visit) => (
-        <VisitCard key={visit.id} visit={visit} />
+        <PublicVisitCard key={visit.id} visit={visit} />
       ))}
     </div>
   );
