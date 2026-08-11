@@ -110,12 +110,23 @@ select volatility_is(
 
 -- Proves the count is serialized rather than merely correct: without the per-user
 -- transaction lock, concurrent uploaders each read the same pre-insert total.
+-- Matching the exact key, not just any advisory lock, keeps this from passing on
+-- some unrelated lock held by the same transaction.
 select isnt_empty(
   $$select 1
-    from pg_locks
-    where locktype = 'advisory'
-      and pid = pg_backend_pid()$$,
-  'evaluating the quota holds a per-user advisory lock'
+    from pg_locks,
+      lateral (
+        select hashtextextended(
+          'visit-evidence:' || auth.uid()::text,
+          0
+        ) as lock_key
+      ) as expected
+    where pg_locks.locktype = 'advisory'
+      and pg_locks.pid = pg_backend_pid()
+      and pg_locks.objsubid = 1
+      and pg_locks.classid = ((expected.lock_key >> 32) & 4294967295)::oid
+      and pg_locks.objid = (expected.lock_key & 4294967295)::oid$$,
+  'evaluating the quota holds the per-user advisory lock'
 );
 
 select throws_ok(
