@@ -1,6 +1,6 @@
 begin;
 
-select plan(30);
+select plan(32);
 
 select has_function(
   'public',
@@ -390,7 +390,18 @@ reset role;
 -- Storage API sets before deleting, so setting it exercises the same path the API
 -- takes — without it protect_delete() rejects first and proves nothing.
 set local storage.allow_delete_query = 'true';
+-- The cleanup driver authenticates with the secret key and carries no user JWT,
+-- so auth.uid() is null on this path. Clearing the claim matters: `set local`
+-- from the block above outlives the role change, and leaving it set made an
+-- earlier version of the owner-key assertion below pass against a caller-keyed
+-- trigger — a vacuous test that proved the opposite of what it claimed.
+set local request.jwt.claim.sub = '';
 set local role service_role;
+
+select is_empty(
+  $$select 1 where auth.uid() is not null$$,
+  'the cleanup path runs without a user identity'
+);
 
 select throws_ok(
   $$delete from storage.objects
@@ -404,6 +415,30 @@ select lives_ok(
   $$delete from storage.objects
     where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp'$$,
   'the service role can still delete an unreferenced upload'
+);
+
+-- The whole point of keying the lock on the evidence owner. Under service_role
+-- auth.uid() is null, so a caller-derived key would lock the empty-identity key
+-- while the attaching user locked their own — two locks, no serialization.
+--
+-- This asserts the *absence* of that empty-identity key rather than the presence
+-- of the owner key. Presence proves nothing here: advisory locks are held for the
+-- whole transaction, so the owner key was already taken by the authenticated
+-- predicates above and the assertion would pass no matter what the trigger did.
+-- Two earlier versions of this test passed against a deliberately broken trigger
+-- before that was caught.
+select is_empty(
+  $$select 1
+    from pg_locks,
+      lateral (
+        select hashtextextended('visit-evidence:', 0) as lock_key
+      ) as expected
+    where pg_locks.locktype = 'advisory'
+      and pg_locks.pid = pg_backend_pid()
+      and pg_locks.objsubid = 1
+      and pg_locks.classid = ((expected.lock_key >> 32) & 4294967295)::oid
+      and pg_locks.objid = (expected.lock_key & 4294967295)::oid$$,
+  'service-role deletion never locks a caller-derived key'
 );
 
 reset role;

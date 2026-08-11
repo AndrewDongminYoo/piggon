@@ -483,7 +483,7 @@ export type Database = {
         };
         Returns: string[];
       };
-      lock_visit_evidence: { Args: never; Returns: undefined };
+      lock_visit_evidence: { Args: { p_user_id: string }; Returns: undefined };
       save_restaurant_with_attributes: {
         Args: {
           p_availability_periods: Json;
