@@ -32,13 +32,7 @@ export async function decodesAsVisitImage(
     });
     const { format, height, width } = await image.metadata();
 
-    if (
-      format !== FORMAT_BY_MEDIA_TYPE[expected] ||
-      !width ||
-      !height ||
-      width < 1 ||
-      height < 1
-    ) {
+    if (format !== FORMAT_BY_MEDIA_TYPE[expected] || !width || !height) {
       return false;
     }
 
