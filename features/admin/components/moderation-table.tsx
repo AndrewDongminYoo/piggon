@@ -9,6 +9,7 @@ import {
   restoreVisit,
   type ModerationActionState,
 } from "../moderation-actions";
+import { ModerationEvidence } from "./moderation-evidence";
 
 const INITIAL_MODERATION_ACTION_STATE: ModerationActionState = {
   message: "",
@@ -20,6 +21,7 @@ export type ModerationRow = {
   createdAt: string;
   displayName: string;
   evidenceType: "instagram" | "photo";
+  evidenceUrl: string | null;
   hidden: boolean;
   id: string;
   parentVisitHidden: boolean;
@@ -117,6 +119,11 @@ export function ModerationTable({ rows }: ModerationTableProps) {
               <td data-label="인증 · 내용">
                 <span>{row.evidenceType}</span>
                 <small>{row.preview}</small>
+                <ModerationEvidence
+                  evidenceType={row.evidenceType}
+                  evidenceUrl={row.evidenceUrl}
+                  restaurantName={row.restaurantName}
+                />
               </td>
               <td data-label="작성 시각">
                 <time>{row.createdAt}</time>

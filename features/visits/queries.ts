@@ -74,7 +74,7 @@ function mapReview(review: ReviewRow | undefined): VisitReview | null {
     : null;
 }
 
-async function createPhotoUrlMap(
+export async function createVisitPhotoUrlMap(
   rows: Array<{
     id: string;
     photo_path: string | null;
@@ -166,7 +166,7 @@ export async function getViewerVisit(
       .select("id, visit_id, rating, body, updated_at")
       .eq("visit_id", data.id)
       .maybeSingle(),
-    createPhotoUrlMap([data]),
+    createVisitPhotoUrlMap([data]),
   ]);
 
   if (reviewError) {
@@ -219,7 +219,7 @@ export async function getPublicRestaurantCommunity(
       .select("id, visit_id, rating, body, updated_at")
       .in("visit_id", visitIds)
       .eq("hidden", false),
-    createPhotoUrlMap(visits),
+    createVisitPhotoUrlMap(visits),
   ]);
 
   if (profileError || reviewError) {
@@ -309,7 +309,7 @@ export async function listUserCollection(
         "visit_id",
         visits.map((visit) => visit.id),
       ),
-    createPhotoUrlMap(visits),
+    createVisitPhotoUrlMap(visits),
   ]);
 
   if (reviewError) {

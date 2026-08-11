@@ -5,6 +5,8 @@ import {
   type ModerationRow,
 } from "@/features/admin/components/moderation-table";
 import { requireAdmin } from "@/features/admin/require-admin";
+import { parseInstagramUrl } from "@/features/restaurants/validators";
+import { createVisitPhotoUrlMap } from "@/features/visits/queries";
 import type { Database } from "@/lib/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -21,7 +23,14 @@ type ReviewRow = Pick<
 
 type VisitModerationRow = Pick<
   Tables["visits"]["Row"],
-  "created_at" | "evidence_type" | "hidden" | "id" | "user_id"
+  | "created_at"
+  | "evidence_type"
+  | "hidden"
+  | "id"
+  | "instagram_url"
+  | "photo_path"
+  | "restaurant_id"
+  | "user_id"
 > & {
   restaurants: Pick<Tables["restaurants"]["Row"], "name" | "slug"> | null;
   reviews: ReviewRow | ReviewRow[] | null;
@@ -32,6 +41,18 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
   timeStyle: "short",
   timeZone: "Asia/Seoul",
 });
+
+function getInstagramEvidenceUrl(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return parseInstagramUrl(value);
+  } catch {
+    return null;
+  }
+}
 
 export default async function AdminModerationPage() {
   await requireAdmin();
@@ -46,6 +67,9 @@ export default async function AdminModerationPage() {
         created_at,
         evidence_type,
         hidden,
+        instagram_url,
+        photo_path,
+        restaurant_id,
         restaurants (
           name,
           slug
@@ -79,6 +103,7 @@ export default async function AdminModerationPage() {
     });
   }
 
+  const photoUrls = await createVisitPhotoUrlMap(visits);
   const profileNames = new Map(
     profileResult.data.map((profile) => [profile.id, profile.display_name]),
   );
@@ -97,6 +122,10 @@ export default async function AdminModerationPage() {
       const shared = {
         displayName,
         evidenceType: visit.evidence_type,
+        evidenceUrl:
+          visit.evidence_type === "photo"
+            ? (photoUrls.get(visit.id) ?? null)
+            : getInstagramEvidenceUrl(visit.instagram_url),
         parentVisitHidden: visit.hidden,
         restaurantName: visit.restaurants.name,
       };
