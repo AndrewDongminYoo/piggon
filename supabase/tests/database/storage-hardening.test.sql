@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(30);
 
 select has_function(
   'public',
@@ -361,6 +361,49 @@ select results_eq(
       and objsubid = 1$$,
   array[1],
   'calling all three predicates still holds exactly one key'
+);
+
+-- Moving a referenced object relocates it and leaves the visit pointing at
+-- nothing, so the update policy has to refuse it the same way delete does.
+-- USING filters the row rather than raising, so the protection shows up as the
+-- move matching nothing — not as an error. Asserting a throw here would fail even
+-- though the object is protected.
+select is_empty(
+  $$update storage.objects
+      set name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/moved.webp'
+    where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
+    returning 1$$,
+  'an owner cannot move evidence a visit points at'
+);
+
+select lives_ok(
+  $$update storage.objects
+      set name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/renamed.webp'
+    where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-4.webp'$$,
+  'an owner can still move an unreferenced upload'
+);
+
+reset role;
+
+-- The role that skips policies is the one that needs constraining here, so the
+-- guard is a trigger rather than a policy. storage.allow_delete_query is what the
+-- Storage API sets before deleting, so setting it exercises the same path the API
+-- takes — without it protect_delete() rejects first and proves nothing.
+set local storage.allow_delete_query = 'true';
+set local role service_role;
+
+select throws_ok(
+  $$delete from storage.objects
+    where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'$$,
+  '23503',
+  'visit evidence is still referenced by a visit',
+  'even the service role cannot delete evidence a visit points at'
+);
+
+select lives_ok(
+  $$delete from storage.objects
+    where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-5.webp'$$,
+  'the service role can still delete an unreferenced upload'
 );
 
 reset role;
