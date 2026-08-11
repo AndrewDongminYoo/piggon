@@ -1,17 +1,17 @@
 begin;
 
-select plan(14);
+select plan(18);
 
 select has_function(
   'public',
-  'current_user_visit_evidence_count',
+  'current_user_unreferenced_evidence_count',
   'visit evidence quota helper exists'
 );
 
 select ok(
   not has_function_privilege(
     'anon',
-    'public.current_user_visit_evidence_count()',
+    'public.current_user_unreferenced_evidence_count()',
     'execute'
   ),
   'anonymous users cannot execute the quota helper'
@@ -20,7 +20,7 @@ select ok(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.current_user_visit_evidence_count()',
+    'public.current_user_unreferenced_evidence_count()',
     'execute'
   ),
   'authenticated uploads can evaluate their quota'
@@ -81,7 +81,7 @@ set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444444';
 select lives_ok(
   $$do $quota$
     begin
-      for item_number in 1..50 loop
+      for item_number in 1..9 loop
         insert into storage.objects (bucket_id, name, owner, owner_id)
         values (
           'visit-evidence',
@@ -92,18 +92,18 @@ select lives_ok(
       end loop;
     end
   $quota$;$$,
-  'an owner can upload within the evidence quota'
+  'an owner can upload within the unreferenced evidence budget'
 );
 
 select results_eq(
-  $$select public.current_user_visit_evidence_count()$$,
-  array[50::bigint],
-  'the quota helper counts owned evidence'
+  $$select public.current_user_unreferenced_evidence_count()$$,
+  array[9::bigint],
+  'the quota helper counts owned evidence nothing references'
 );
 
 select volatility_is(
   'public',
-  'current_user_visit_evidence_count',
+  'current_user_unreferenced_evidence_count',
   'volatile',
   'the quota helper is not cached across a statement'
 );
@@ -129,30 +129,28 @@ select isnt_empty(
   'evaluating the quota holds the per-user advisory lock'
 );
 
--- Replacement uploads the new object while the old one is still referenced, so a
--- user sitting exactly at the cap must still be able to put one object in flight.
 select lives_ok(
   $$insert into storage.objects (bucket_id, name, owner, owner_id)
     values (
       'visit-evidence',
-      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-51.webp',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp',
       '44444444-4444-4444-4444-444444444444',
       '44444444-4444-4444-4444-444444444444'
     )$$,
-  'an owner at the cap can still upload one replacement'
+  'an owner can fill the unreferenced evidence budget'
 );
 
 select throws_ok(
   $$insert into storage.objects (bucket_id, name, owner, owner_id)
     values (
       'visit-evidence',
-      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-52.webp',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-11.webp',
       '44444444-4444-4444-4444-444444444444',
       '44444444-4444-4444-4444-444444444444'
     )$$,
   '42501',
   null,
-  'the evidence quota rejects an upload past the replacement slot'
+  'the budget rejects an upload past the unreferenced limit'
 );
 
 insert into public.visits (
@@ -170,12 +168,32 @@ values (
   '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
 );
 
+-- The point of the whole design: saved evidence stops competing with uploads,
+-- because a visit that references it is already bounded to one per restaurant.
+-- Without this, a user at the cap could never replace a photo.
+select results_eq(
+  $$select public.current_user_unreferenced_evidence_count()$$,
+  array[9::bigint],
+  'evidence a visit references leaves the unreferenced budget'
+);
+
+select lives_ok(
+  $$insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'visit-evidence',
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-11.webp',
+      '44444444-4444-4444-4444-444444444444',
+      '44444444-4444-4444-4444-444444444444'
+    )$$,
+  'attaching evidence to a visit frees budget for a replacement'
+);
+
 -- Backs the compare-and-swap in upsertVisit: the loser of a concurrent photo
 -- replacement holds a stale path, so its guarded update must match no row rather
 -- than overwrite the winner and strand the winner's object.
 select is_empty(
   $$update public.visits
-      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-51.webp'
+      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
       where user_id = '44444444-4444-4444-4444-444444444444'
         and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-9.webp'
       returning 1$$,
@@ -184,11 +202,44 @@ select is_empty(
 
 select isnt_empty(
   $$update public.visits
-      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-51.webp'
+      set photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-10.webp'
       where user_id = '44444444-4444-4444-4444-444444444444'
         and photo_path = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-1.webp'
       returning 1$$,
   'the current evidence path swaps the visit row'
+);
+
+reset role;
+
+-- Only this one is old enough to be reclaimable; every other object was created
+-- in this transaction, so the age floor must keep them all out.
+update storage.objects
+set created_at = now() - interval '2 days'
+where name = '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-2.webp';
+
+set local role service_role;
+
+select is_empty(
+  $$select public.list_reclaimable_visit_evidence(
+      '44444444-4444-4444-4444-444444444444',
+      86400,
+      '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-2.webp',
+      5
+    )$$,
+  'the path being saved right now is never reclaimed'
+);
+
+select results_eq(
+  $$select public.list_reclaimable_visit_evidence(
+      '44444444-4444-4444-4444-444444444444',
+      86400,
+      null,
+      5
+    )$$,
+  array[
+    '44444444-4444-4444-4444-444444444444/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee/quota-2.webp'
+  ],
+  'only aged, unreferenced evidence is reclaimable'
 );
 
 select * from finish();

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  reclaimAbandonedVisitPhotos,
   removeOrQueueVisitPhoto,
   retryVisitPhotoCleanup,
   type VisitPhotoCleanupDriver,
@@ -9,10 +10,12 @@ import {
 function createDriver(
   removeError: string | null,
   queuedPaths: string[] = [],
+  abandonedPaths: string[] = [],
 ): VisitPhotoCleanupDriver {
   return {
     clear: vi.fn(async () => true),
     list: vi.fn(async () => queuedPaths),
+    listAbandoned: vi.fn(async () => abandonedPaths),
     queue: vi.fn(async () => true),
     remove: vi.fn(async () => removeError),
   };
@@ -56,5 +59,40 @@ describe("visit photo cleanup", () => {
 
     expect(driver.remove).toHaveBeenCalledTimes(2);
     expect(driver.clear).toHaveBeenCalledTimes(2);
+  });
+
+  it("reclaims abandoned uploads while exempting the one being saved", async () => {
+    const driver = createDriver(null, [], ["user/restaurant/abandoned.webp"]);
+
+    await reclaimAbandonedVisitPhotos(
+      driver,
+      "user",
+      "user/restaurant/in-flight.webp",
+    );
+
+    expect(driver.listAbandoned).toHaveBeenCalledWith(
+      "user",
+      "user/restaurant/in-flight.webp",
+      5,
+    );
+    expect(driver.remove).toHaveBeenCalledWith(
+      "user/restaurant/abandoned.webp",
+    );
+  });
+
+  it("queues an abandoned upload whose deletion fails", async () => {
+    const driver = createDriver(
+      "temporary storage failure",
+      [],
+      ["user/restaurant/abandoned.webp"],
+    );
+
+    await reclaimAbandonedVisitPhotos(driver, "user", null);
+
+    expect(driver.queue).toHaveBeenCalledWith({
+      lastError: "temporary storage failure",
+      path: "user/restaurant/abandoned.webp",
+      userId: "user",
+    });
   });
 });

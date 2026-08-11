@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getReviewMutation } from "./review-mutation";
 import {
   cleanupStoredVisitPhoto,
+  reclaimStoredAbandonedVisitPhotos,
   retryStoredVisitPhotoCleanup,
 } from "./photo-cleanup-server";
 import {
@@ -192,6 +193,10 @@ export async function upsertVisit(
       status: "error",
     };
   }
+
+  // Runs after parsing so the path this request is saving is exempt from its own
+  // sweep; an upload abandoned by an earlier attempt is reclaimed here.
+  await reclaimStoredAbandonedVisitPhotos(user.id, parsed.data.photoPath);
 
   if (parsed.data.visitedOn > getCurrentSeoulDate()) {
     return {

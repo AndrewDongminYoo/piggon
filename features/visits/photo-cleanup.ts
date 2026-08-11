@@ -3,6 +3,11 @@ const CLEANUP_RETRY_LIMIT = 5;
 export type VisitPhotoCleanupDriver = {
   clear: (path: string) => Promise<boolean>;
   list: (userId: string, limit: number) => Promise<string[]>;
+  listAbandoned: (
+    userId: string,
+    exceptPath: string | null,
+    limit: number,
+  ) => Promise<string[]>;
   queue: (job: {
     lastError: string;
     path: string;
@@ -44,13 +49,14 @@ export async function removeOrQueueVisitPhoto(
   return true;
 }
 
-export async function retryVisitPhotoCleanup(
+async function removeListed(
   driver: VisitPhotoCleanupDriver,
   userId: string,
+  list: () => Promise<string[]>,
 ): Promise<void> {
   let paths: string[];
   try {
-    paths = await driver.list(userId, CLEANUP_RETRY_LIMIT);
+    paths = await list();
   } catch {
     return;
   }
@@ -58,4 +64,25 @@ export async function retryVisitPhotoCleanup(
   for (const path of paths) {
     await removeOrQueueVisitPhoto(driver, path, userId);
   }
+}
+
+export async function retryVisitPhotoCleanup(
+  driver: VisitPhotoCleanupDriver,
+  userId: string,
+): Promise<void> {
+  await removeListed(driver, userId, () =>
+    driver.list(userId, CLEANUP_RETRY_LIMIT),
+  );
+}
+
+// An upload the browser never got to save holds evidence budget until something
+// removes it. Nothing queues it, so it has to be discovered rather than retried.
+export async function reclaimAbandonedVisitPhotos(
+  driver: VisitPhotoCleanupDriver,
+  userId: string,
+  exceptPath: string | null,
+): Promise<void> {
+  await removeListed(driver, userId, () =>
+    driver.listAbandoned(userId, exceptPath, CLEANUP_RETRY_LIMIT),
+  );
 }

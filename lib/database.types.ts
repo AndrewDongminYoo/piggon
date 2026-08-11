@@ -431,7 +431,19 @@ export type Database = {
     };
     Functions: {
       current_user_has_profile: { Args: never; Returns: boolean };
-      current_user_visit_evidence_count: { Args: never; Returns: number };
+      current_user_unreferenced_evidence_count: {
+        Args: never;
+        Returns: number;
+      };
+      list_reclaimable_visit_evidence: {
+        Args: {
+          p_except_path: string;
+          p_limit: number;
+          p_older_than_seconds: number;
+          p_user_id: string;
+        };
+        Returns: string[];
+      };
       save_restaurant_with_attributes: {
         Args: {
           p_availability_periods: Json;
