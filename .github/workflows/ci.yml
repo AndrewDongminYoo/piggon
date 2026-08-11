@@ -26,10 +26,9 @@ jobs:
       - run: pnpm build
         env:
           ADMIN_GOOGLE_EMAIL: admin@example.com
-          NEXT_PUBLIC_KAKAO_MAP_APP_KEY: kakao-build-only
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_build_only
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: service-role-build-only
+          NEXT_PUBLIC_KAKAO_MAP_APP_KEY: 7d3e43c57d035f8762f60f374bc1f83f
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_hrOdkBTCrOKvZCXPWGpUbg_dpZzUSbL
+          NEXT_PUBLIC_SUPABASE_URL: https://wdizkhonzlquyxdardeb.supabase.co
 
   database:
     runs-on: ubuntu-latest

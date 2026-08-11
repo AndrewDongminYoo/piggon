@@ -58,13 +58,13 @@ Open `http://localhost:3000`.
 
 ## Environment variables
 
-| Variable                               | Exposure    | Purpose                                                                                                |
-| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Browser     | Supabase project API URL.                                                                              |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser     | Supabase publishable key used by browser and SSR clients.                                              |
-| `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`        | Browser     | Kakao JavaScript key for the Map Web SDK.                                                              |
-| `SUPABASE_SERVICE_ROLE_KEY`            | Server only | Service-role credential used by owner-only administration operations. Never expose it to browser code. |
-| `ADMIN_GOOGLE_EMAIL`                   | Server only | The single Google account allowed to access `/admin`; comparison is case-insensitive.                  |
+| Variable                               | Exposure    | Purpose                                                                                            |
+| -------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Browser     | Supabase project API URL.                                                                          |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser     | Supabase publishable key used by browser and SSR clients.                                          |
+| `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`        | Browser     | Kakao JavaScript key for the Map Web SDK.                                                          |
+| `SUPABASE_SECRET_KEY`                  | Server only | Supabase secret key used by owner-only administration operations. Never expose it to browser code. |
+| `ADMIN_GOOGLE_EMAIL`                   | Server only | The single Google account allowed to access `/admin`; comparison is case-insensitive.              |
 
 Configure all five variables separately in Vercel Development, Preview, and Production environments.
 Vercel applies environment changes only to new deployments, so redeploy after changing a value; see the [Vercel environment variable guide](https://vercel.com/docs/environment-variables).
@@ -77,7 +77,7 @@ The [Supabase Google login guide](https://supabase.com/docs/guides/auth/social-l
 1. In Google Auth Platform, create a Web application OAuth client.
 2. Add `http://localhost:3000` and the intended preview and production origins under Authorized JavaScript origins.
 3. Add the callback shown by the Supabase Google provider page under Authorized redirect URIs.
-4. For a locally configured Google provider, the callback is `http://127.0.0.1:54321/auth/v1/callback`.
+4. For a locally configured Google provider, the callback is `http://127.0.0.1:55321/auth/v1/callback`.
 5. Enable Google in Supabase Authentication providers and store the client ID and secret there.
 6. In Supabase URL Configuration, set the production origin as Site URL and allow `http://localhost:3000/**`, the Vercel preview pattern, and the exact production `/auth/callback` URL.
 

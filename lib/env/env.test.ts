@@ -21,9 +21,21 @@ describe("environment parsing", () => {
   it("rejects an invalid administrator email", () => {
     expect(() =>
       parseServerEnv({
-        SUPABASE_SERVICE_ROLE_KEY: "service-role-key",
+        SUPABASE_SECRET_KEY: "secret-key",
         ADMIN_GOOGLE_EMAIL: "not-an-email",
       }),
     ).toThrow();
+  });
+
+  it("accepts the Supabase secret key name exposed by Vercel", () => {
+    expect(
+      parseServerEnv({
+        ADMIN_GOOGLE_EMAIL: "Admin@example.com",
+        SUPABASE_SECRET_KEY: "secret-key",
+      }),
+    ).toEqual({
+      adminGoogleEmail: "admin@example.com",
+      supabaseSecretKey: "secret-key",
+    });
   });
 });

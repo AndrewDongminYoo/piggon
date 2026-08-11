@@ -21,15 +21,15 @@ function createAdminFetch(apiKey: string): typeof fetch {
 
 export function createAdminClient() {
   const { supabaseUrl } = getPublicEnv();
-  const { supabaseServiceRoleKey } = getServerEnv();
+  const { supabaseSecretKey } = getServerEnv();
 
-  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseSecretKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
     global: {
-      fetch: createAdminFetch(supabaseServiceRoleKey),
+      fetch: createAdminFetch(supabaseSecretKey),
     },
   });
 }
