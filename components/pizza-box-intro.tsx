@@ -1,8 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { INTRO_STORAGE_KEY, shouldPlayIntro } from "@/lib/intro-state";
+import {
+  getIntroKeyboardAction,
+  INTRO_STORAGE_KEY,
+  shouldPlayIntro,
+} from "@/lib/intro-state";
 
 type PizzaBoxIntroProps = {
   replayToken: number;
@@ -10,6 +20,7 @@ type PizzaBoxIntroProps = {
 
 export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const skipButtonRef = useRef<HTMLButtonElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,6 +97,35 @@ export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
     };
   }, [finishIntro, replayToken]);
 
+  function handleDialogKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    const focusableElements = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements.at(-1);
+    const action = getIntroKeyboardAction({
+      isFirstFocusable: document.activeElement === firstFocusable,
+      isLastFocusable: document.activeElement === lastFocusable,
+      key: event.key,
+      shiftKey: event.shiftKey,
+    });
+
+    if (action === null) {
+      return;
+    }
+
+    event.preventDefault();
+    if (action === "close") {
+      finishIntro();
+    } else if (action === "focus-first") {
+      firstFocusable?.focus();
+    } else {
+      lastFocusable?.focus();
+    }
+  }
+
   if (!isVisible) {
     return null;
   }
@@ -95,6 +135,8 @@ export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
       aria-label="피자박스 열기"
       aria-modal="true"
       className="pizza-intro"
+      onKeyDown={handleDialogKeyDown}
+      ref={dialogRef}
       role="dialog"
     >
       <button

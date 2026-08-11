@@ -9,11 +9,7 @@ type SiteHeaderProps = {
 export function SiteHeader({ onReplayIntro }: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <Link
-        aria-label="Piggon 피자 지도로 이동"
-        className="brand-lockup"
-        href="/"
-      >
+      <Link className="brand-lockup" href="/">
         <span aria-hidden="true" className="brand-mark">
           P
         </span>
@@ -26,7 +22,6 @@ export function SiteHeader({ onReplayIntro }: SiteHeaderProps) {
         <Link href="/">맛집 지도</Link>
         <Link href="/me">먹어본 피자</Link>
         <button
-          aria-label="피자박스 열기 다시 보기"
           className="box-replay-button"
           onClick={onReplayIntro}
           type="button"

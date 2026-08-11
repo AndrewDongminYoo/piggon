@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldPlayIntro } from "./intro-state";
+import { getIntroKeyboardAction, shouldPlayIntro } from "./intro-state";
 
 describe("shouldPlayIntro", () => {
   it.each([
@@ -23,4 +23,34 @@ describe("shouldPlayIntro", () => {
   ])("returns the expected intro decision", (input, expected) => {
     expect(shouldPlayIntro(input)).toBe(expected);
   });
+});
+
+describe("getIntroKeyboardAction", () => {
+  it("closes the intro when Escape is pressed", () => {
+    expect(
+      getIntroKeyboardAction({
+        isFirstFocusable: false,
+        isLastFocusable: false,
+        key: "Escape",
+        shiftKey: false,
+      }),
+    ).toBe("close");
+  });
+
+  it.each([
+    [false, true, false, "focus-first"],
+    [true, false, true, "focus-last"],
+  ] as const)(
+    "keeps Tab navigation inside the dialog",
+    (isFirstFocusable, isLastFocusable, shiftKey, expected) => {
+      expect(
+        getIntroKeyboardAction({
+          isFirstFocusable,
+          isLastFocusable,
+          key: "Tab",
+          shiftKey,
+        }),
+      ).toBe(expected);
+    },
+  );
 });

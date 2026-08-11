@@ -71,7 +71,7 @@ export function AtlasShell({ currentDate, restaurants }: AtlasShellProps) {
           <StampBadge tone="tomato">UNOFFICIAL PIZZA ATLAS</StampBadge>
           <h1>
             피자에 진심인 사람들의
-            <br />
+            <br className="atlas-hero__line-break" />
             다음 한 판을 위하여
           </h1>
           <p>
