@@ -354,6 +354,41 @@ export type Database = {
         };
         Relationships: [];
       };
+      visit_moderation_marks: {
+        Row: {
+          created_at: string;
+          restaurant_id: string;
+          review_hidden: boolean;
+          updated_at: string;
+          user_id: string;
+          visit_hidden: boolean;
+        };
+        Insert: {
+          created_at?: string;
+          restaurant_id: string;
+          review_hidden?: boolean;
+          updated_at?: string;
+          user_id: string;
+          visit_hidden?: boolean;
+        };
+        Update: {
+          created_at?: string;
+          restaurant_id?: string;
+          review_hidden?: boolean;
+          updated_at?: string;
+          user_id?: string;
+          visit_hidden?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "visit_moderation_marks_restaurant_id_fkey";
+            columns: ["restaurant_id"];
+            isOneToOne: false;
+            referencedRelation: "restaurants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       visit_photo_cleanup_jobs: {
         Row: {
           created_at: string;

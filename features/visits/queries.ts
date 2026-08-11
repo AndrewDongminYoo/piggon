@@ -32,11 +32,16 @@ export type ViewerProfile = {
 
 export type ViewerVisit = {
   evidenceType: "photo" | "instagram";
+  // Moderation state, shown only to the owner. New content inherits a standing
+  // moderation decision, so the owner has to be able to see that it applies —
+  // otherwise inheriting it silently would be a shadow ban.
+  hidden: boolean;
   id: string;
   instagramUrl: string | null;
   photoPath: string | null;
   photoUrl: string | null;
   review: VisitReview | null;
+  reviewHidden: boolean;
   // Optimistic-concurrency token. The form submits the value it rendered with,
   // and the write only lands if the row has not moved since — so a stale tab
   // fails instead of silently reverting whatever changed in the meantime.
@@ -50,6 +55,7 @@ export type UserCollectionItem = ViewerVisit & {
 
 type VisitRow = {
   evidence_type: "photo" | "instagram";
+  hidden: boolean;
   id: string;
   instagram_url: string | null;
   photo_path: string | null;
@@ -66,6 +72,7 @@ type PublicVisitRow = Pick<
 
 type ReviewRow = {
   body: string;
+  hidden: boolean;
   id: string;
   rating: number;
   updated_at: string;
@@ -155,7 +162,7 @@ export async function getViewerVisit(
   const { data, error } = await supabase
     .from("visits")
     .select(
-      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at",
+      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at, hidden",
     )
     .eq("restaurant_id", restaurantId)
     .eq("user_id", userId)
@@ -172,7 +179,7 @@ export async function getViewerVisit(
   const [{ data: review, error: reviewError }, photoUrls] = await Promise.all([
     supabase
       .from("reviews")
-      .select("id, visit_id, rating, body, updated_at")
+      .select("id, visit_id, rating, body, updated_at, hidden")
       .eq("visit_id", data.id)
       .maybeSingle(),
     createVisitPhotoUrlMap([data]),
@@ -184,11 +191,13 @@ export async function getViewerVisit(
 
   return {
     evidenceType: data.evidence_type,
+    hidden: data.hidden,
     id: data.id,
     instagramUrl: data.instagram_url,
     photoPath: data.photo_path,
     photoUrl: photoUrls.get(data.id) ?? null,
     review: mapReview(review ?? undefined),
+    reviewHidden: review?.hidden ?? false,
     updatedAt: data.updated_at,
     visitedOn: data.visited_on,
   };
@@ -223,7 +232,7 @@ export async function getPublicRestaurantCommunity(
     supabase.from("profiles").select("id, display_name").in("id", userIds),
     supabase
       .from("reviews")
-      .select("id, visit_id, rating, body, updated_at")
+      .select("id, visit_id, rating, body, updated_at, hidden")
       .in("visit_id", visitIds)
       .eq("hidden", false),
   ]);
@@ -277,6 +286,7 @@ export async function listUserCollection(
         photo_path,
         instagram_url,
         updated_at,
+        hidden,
         restaurants (
           id,
           slug,
@@ -310,7 +320,7 @@ export async function listUserCollection(
   const [{ data: reviews, error: reviewError }, photoUrls] = await Promise.all([
     supabase
       .from("reviews")
-      .select("id, visit_id, rating, body, updated_at")
+      .select("id, visit_id, rating, body, updated_at, hidden")
       .in(
         "visit_id",
         visits.map((visit) => visit.id),
@@ -328,12 +338,14 @@ export async function listUserCollection(
 
   return visits.map((visit) => ({
     evidenceType: visit.evidence_type,
+    hidden: visit.hidden,
     id: visit.id,
     instagramUrl: visit.instagram_url,
     photoPath: visit.photo_path,
     photoUrl: photoUrls.get(visit.id) ?? null,
     restaurant: getCollectionRestaurant(visit.restaurant_id, visit.restaurants),
     review: mapReview(reviewByVisitId.get(visit.id)),
+    reviewHidden: reviewByVisitId.get(visit.id)?.hidden ?? false,
     updatedAt: visit.updated_at,
     visitedOn: visit.visited_on,
   }));

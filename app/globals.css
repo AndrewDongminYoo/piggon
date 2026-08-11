@@ -1302,6 +1302,17 @@ textarea:focus-visible {
   resize: vertical;
 }
 
+.visit-moderation-notice {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+}
+
 .form-field-error {
   color: var(--tomato-dark);
   display: block;
