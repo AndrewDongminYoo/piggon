@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 
 import {
   discardUploadedVisitPhoto,
+  reclaimAbandonedVisitEvidence,
   saveDisplayName,
   upsertReview,
   upsertVisit,
@@ -164,18 +165,30 @@ export function VisitForm({
           };
         }
 
-        uploadedPath = createVisitPhotoPath(
+        const photoPath = createVisitPhotoPath(
           userId,
           restaurantId,
           extensionForMediaType(mediaType),
         );
+        uploadedPath = photoPath;
         const supabase = createClient();
-        const { error } = await supabase.storage
-          .from(VISIT_EVIDENCE_BUCKET)
-          .upload(uploadedPath, photo, {
-            contentType: mediaType,
-            upsert: false,
-          });
+        const uploadPhoto = () =>
+          supabase.storage
+            .from(VISIT_EVIDENCE_BUCKET)
+            .upload(photoPath, photo, {
+              contentType: mediaType,
+              upsert: false,
+            });
+
+        let { error } = await uploadPhoto();
+        if (error) {
+          // Uploads abandoned by earlier attempts hold evidence budget, and the
+          // sweep that reclaims them runs inside upsertVisit — which this very
+          // failure stops us from reaching. Reclaim here, then try once more, so
+          // the budget cannot deadlock the only flow that would free it.
+          await reclaimAbandonedVisitEvidence().catch(() => undefined);
+          ({ error } = await uploadPhoto());
+        }
 
         if (error) {
           return {

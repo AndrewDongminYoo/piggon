@@ -401,6 +401,15 @@ export async function upsertVisit(
   };
 }
 
+// Reachable before an upload, unlike the sweep inside upsertVisit. Uploads
+// abandoned by earlier attempts hold evidence budget, and once they fill it the
+// upload fails — which stops the visit write, and with it the sweep that would
+// have freed the budget. The client calls this when an upload is refused.
+export async function reclaimAbandonedVisitEvidence(): Promise<void> {
+  const user = await requireUser();
+  await reclaimStoredAbandonedVisitPhotos(user.id, null);
+}
+
 // Rolls back an upload whose visit write failed. The browser cannot retry a failed
 // delete, so this routes the discard through the same remove-or-queue driver that
 // deletion uses; a transient Storage failure leaves a cleanup job instead of an
