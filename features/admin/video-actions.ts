@@ -109,8 +109,9 @@ export async function saveVideoLinks(
   ) {
     return {
       formValues,
-      message:
-        "이미 등록된 영상입니다. 기존 영상 편집에서 선택한 뒤 연결을 수정해 주세요.",
+      message: existingVideo
+        ? "이미 등록된 영상입니다. 기존 영상 편집에서 선택한 뒤 연결을 수정해 주세요."
+        : "편집 중에는 영상 URL을 다른 영상으로 바꿀 수 없습니다. 새 영상으로 등록해 주세요.",
       status: "error",
     };
   }
