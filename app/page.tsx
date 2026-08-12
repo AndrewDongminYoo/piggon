@@ -1,7 +1,15 @@
 import { AtlasShell } from "@/features/restaurants/components/atlas-shell";
 import { listPublishedRestaurants } from "@/features/restaurants/queries";
+import {
+  parseAtlasUrlState,
+  serializeAtlasUrlState,
+} from "@/features/restaurants/atlas-url-state";
 
-export default async function Home() {
+type HomeProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
   const currentDate = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     month: "2-digit",
@@ -12,6 +20,14 @@ export default async function Home() {
     { includeEndedPopups: true },
     currentDate,
   );
+  const initialState = parseAtlasUrlState(await searchParams);
 
-  return <AtlasShell currentDate={currentDate} restaurants={restaurants} />;
+  return (
+    <AtlasShell
+      currentDate={currentDate}
+      initialState={initialState}
+      key={serializeAtlasUrlState(initialState)}
+      restaurants={restaurants}
+    />
+  );
 }
