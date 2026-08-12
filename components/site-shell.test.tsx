@@ -13,5 +13,8 @@ describe("SiteShell", () => {
 
     expect(markup).toContain('href="#main-content"');
     expect(markup).toContain('id="main-content"');
+    expect(markup.indexOf('href="#main-content"')).toBeLessThan(
+      markup.indexOf('class="site-header"'),
+    );
   });
 });
