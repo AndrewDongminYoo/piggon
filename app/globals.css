@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-piggon-body: "Noto Sans KR Variable";
+  --font-piggon-display: "Black Han Sans";
   --kraft: #c8975d;
   --kraft-dark: #9d6a35;
   --paper: #fff8e7;

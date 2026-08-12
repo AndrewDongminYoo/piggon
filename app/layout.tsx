@@ -1,25 +1,12 @@
 import type { Metadata } from "next";
-import { Black_Han_Sans, Noto_Sans_KR } from "next/font/google";
+
+import "@fontsource-variable/noto-sans-kr";
+import "@fontsource/black-han-sans/korean-400.css";
+import "@fontsource/black-han-sans/latin-400.css";
 
 import { SiteShell } from "@/components/site-shell";
 
 import "./globals.css";
-
-const displayFont = Black_Han_Sans({
-  display: "swap",
-  preload: false,
-  subsets: ["latin"],
-  variable: "--font-piggon-display",
-  weight: "400",
-});
-
-const bodyFont = Noto_Sans_KR({
-  display: "swap",
-  preload: false,
-  subsets: ["latin"],
-  variable: "--font-piggon-body",
-  weight: ["400", "500", "700", "800"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${displayFont.variable} ${bodyFont.variable}`}>
+    <html lang="ko">
       <body>
         <SiteShell>{children}</SiteShell>
       </body>
