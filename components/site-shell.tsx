@@ -10,11 +10,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <PizzaBoxIntro replayToken={replayToken} />
-      <SiteHeader onReplayIntro={() => setReplayToken((value) => value + 1)} />
       <a className="skip-link" href="#main-content">
         본문으로 건너뛰기
       </a>
+      <PizzaBoxIntro replayToken={replayToken} />
+      <SiteHeader onReplayIntro={() => setReplayToken((value) => value + 1)} />
       <div className="site-content" id="main-content" tabIndex={-1}>
         {children}
       </div>

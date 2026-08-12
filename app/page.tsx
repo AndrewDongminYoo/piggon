@@ -1,9 +1,6 @@
 import { AtlasShell } from "@/features/restaurants/components/atlas-shell";
 import { listPublishedRestaurants } from "@/features/restaurants/queries";
-import {
-  parseAtlasUrlState,
-  serializeAtlasUrlState,
-} from "@/features/restaurants/atlas-url-state";
+import { parseAtlasUrlState } from "@/features/restaurants/atlas-url-state";
 
 type HomeProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -26,7 +23,6 @@ export default async function Home({ searchParams }: HomeProps) {
     <AtlasShell
       currentDate={currentDate}
       initialState={initialState}
-      key={serializeAtlasUrlState(initialState)}
       restaurants={restaurants}
     />
   );
