@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -22,9 +22,11 @@ import {
   VISIT_IMAGE_MAX_BYTES,
 } from "../storage";
 
-function FieldError({ errors }: { errors?: string[] }) {
+function FieldError({ errors, id }: { errors?: string[]; id: string }) {
   return errors?.[0] ? (
-    <small className="form-field-error">{errors[0]}</small>
+    <small className="form-field-error" id={id}>
+      {errors[0]}
+    </small>
   ) : null;
 }
 
@@ -41,6 +43,7 @@ function ActionMessage({ state }: { state: VisitActionState }) {
 
 export function ProfileForm({ displayName = "" }: { displayName?: string }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   async function submitProfile(
     previousState: VisitActionState,
     formData: FormData,
@@ -57,12 +60,24 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
     INITIAL_VISIT_ACTION_STATE,
   );
 
+  useEffect(() => {
+    formRef.current
+      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+      ?.focus();
+  }, [state.fieldErrors]);
+
   return (
-    <form action={action} className="profile-form">
+    <form action={action} className="profile-form" ref={formRef}>
       <label htmlFor="displayName">커뮤니티 표시 이름</label>
       <p>Google 이메일 대신 이 이름만 다른 피자 팬에게 공개됩니다.</p>
       <div className="profile-form__row">
         <input
+          aria-describedby={
+            state.fieldErrors?.displayName
+              ? "profile-display-name-error"
+              : undefined
+          }
+          aria-invalid={Boolean(state.fieldErrors?.displayName)}
           defaultValue={displayName}
           id="displayName"
           maxLength={30}
@@ -75,7 +90,10 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
           {isPending ? "저장 중…" : "이름 저장"}
         </button>
       </div>
-      <FieldError errors={state.fieldErrors?.displayName} />
+      <FieldError
+        errors={state.fieldErrors?.displayName}
+        id="profile-display-name-error"
+      />
       <ActionMessage state={state} />
     </form>
   );
@@ -120,6 +138,7 @@ export function VisitForm({
   userId,
 }: VisitFormProps) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [evidenceType, setEvidenceType] = useState<"photo" | "instagram">(
     existingVisit?.evidenceType ?? "photo",
   );
@@ -233,9 +252,15 @@ export function VisitForm({
     INITIAL_VISIT_ACTION_STATE,
   );
 
+  useEffect(() => {
+    formRef.current
+      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+      ?.focus();
+  }, [state.fieldErrors]);
+
   return (
     <div className="visit-form-wrap">
-      <form action={action} className="visit-form">
+      <form action={action} className="visit-form" ref={formRef}>
         <input name="restaurantId" type="hidden" value={restaurantId} />
         {/* Version this form was rendered with; the write refuses to land if the
             visit has moved since, so a stale tab cannot revert another's edit. */}
@@ -274,13 +299,20 @@ export function VisitForm({
         <label className="visit-form__field">
           <span>방문 날짜</span>
           <input
+            aria-describedby={
+              state.fieldErrors?.visitedOn ? "visit-date-error" : undefined
+            }
+            aria-invalid={Boolean(state.fieldErrors?.visitedOn)}
             defaultValue={existingVisit?.visitedOn ?? currentDate}
             max={currentDate}
             name="visitedOn"
             required
             type="date"
           />
-          <FieldError errors={state.fieldErrors?.visitedOn} />
+          <FieldError
+            errors={state.fieldErrors?.visitedOn}
+            id="visit-date-error"
+          />
         </label>
 
         {evidenceType === "photo" ? (
@@ -290,6 +322,14 @@ export function VisitForm({
             </span>
             <input
               accept="image/jpeg,image/png,image/webp"
+              aria-describedby={
+                state.fieldErrors?.photo || state.fieldErrors?.photoPath
+                  ? "visit-photo-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                state.fieldErrors?.photo ?? state.fieldErrors?.photoPath,
+              )}
               name="photo"
               required={!existingVisit?.photoPath}
               type="file"
@@ -297,19 +337,29 @@ export function VisitForm({
             <small>JPEG, PNG, WebP · 최대 8 MiB</small>
             <FieldError
               errors={state.fieldErrors?.photo ?? state.fieldErrors?.photoPath}
+              id="visit-photo-error"
             />
           </label>
         ) : (
           <label className="visit-form__field">
             <span>공개 Instagram 게시물 또는 릴</span>
             <input
+              aria-describedby={
+                state.fieldErrors?.instagramUrl
+                  ? "visit-instagram-url-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(state.fieldErrors?.instagramUrl)}
               defaultValue={existingVisit?.instagramUrl ?? ""}
               name="instagramUrl"
               placeholder="https://www.instagram.com/p/.../"
               required
               type="url"
             />
-            <FieldError errors={state.fieldErrors?.instagramUrl} />
+            <FieldError
+              errors={state.fieldErrors?.instagramUrl}
+              id="visit-instagram-url-error"
+            />
           </label>
         )}
 
@@ -318,6 +368,10 @@ export function VisitForm({
           <label>
             <span>별점</span>
             <select
+              aria-describedby={
+                state.fieldErrors?.rating ? "visit-rating-error" : undefined
+              }
+              aria-invalid={Boolean(state.fieldErrors?.rating)}
               defaultValue={existingVisit?.review?.rating ?? ""}
               name="rating"
             >
@@ -328,18 +382,30 @@ export function VisitForm({
               <option value="2">2 — 아쉬워요</option>
               <option value="1">1 — 내 취향은 아니에요</option>
             </select>
-            <FieldError errors={state.fieldErrors?.rating} />
+            <FieldError
+              errors={state.fieldErrors?.rating}
+              id="visit-rating-error"
+            />
           </label>
           <label>
             <span>리뷰</span>
             <textarea
+              aria-describedby={
+                state.fieldErrors?.reviewBody
+                  ? "visit-review-body-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(state.fieldErrors?.reviewBody)}
               defaultValue={existingVisit?.review?.body ?? ""}
               maxLength={2000}
               name="reviewBody"
               placeholder="어떤 피자였는지 다른 팬에게 알려주세요."
               rows={4}
             />
-            <FieldError errors={state.fieldErrors?.reviewBody} />
+            <FieldError
+              errors={state.fieldErrors?.reviewBody}
+              id="visit-review-body-error"
+            />
           </label>
         </fieldset>
 

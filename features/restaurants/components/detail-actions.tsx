@@ -12,6 +12,12 @@ type CopyState = "idle" | "copied" | "error";
 
 export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const copyFeedback =
+    copyState === "copied"
+      ? "상세 링크를 복사했습니다."
+      : copyState === "error"
+        ? "상세 링크를 복사하지 못했습니다."
+        : "";
 
   async function copyDetailLink(): Promise<void> {
     try {
@@ -56,6 +62,13 @@ export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
             ? "복사하지 못했어요"
             : "상세 링크 복사"}
       </button>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        className="screen-reader-text"
+      >
+        {copyFeedback}
+      </span>
     </div>
   );
 }

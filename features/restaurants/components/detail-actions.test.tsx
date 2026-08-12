@@ -32,4 +32,12 @@ describe("DetailActions", () => {
     expect(markup).not.toContain("방문 인증하러 가기");
     expect(markup).toContain("맛집 지도로");
   });
+
+  it("includes a polite live region for link-copy feedback", () => {
+    const markup = renderToStaticMarkup(
+      <DetailActions restaurantSlug="marione" />,
+    );
+
+    expect(markup).toContain('aria-live="polite"');
+  });
 });

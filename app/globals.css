@@ -14,6 +14,7 @@
   --basil-dark: #1f623e;
   --cheese: #f2c94c;
   --muted-ink: #655a4d;
+  --site-header-height: 84px;
   --shadow: 6px 6px 0 var(--ink);
   --shadow-small: 3px 3px 0 var(--ink);
 }
@@ -82,6 +83,35 @@ textarea:focus-visible {
   min-height: calc(100vh - 190px);
   padding: 24px clamp(16px, 3vw, 46px) 48px;
   width: 100%;
+}
+
+.skip-link,
+.screen-reader-text {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.skip-link:focus-visible {
+  background: var(--cheese);
+  border: 3px solid var(--ink);
+  clip: auto;
+  clip-path: none;
+  font-size: 0.8rem;
+  font-weight: 900;
+  height: auto;
+  left: 16px;
+  overflow: visible;
+  padding: 10px 14px;
+  position: fixed;
+  top: 14px;
+  white-space: normal;
+  width: auto;
+  z-index: 100;
 }
 
 .site-header {
@@ -564,6 +594,7 @@ textarea:focus-visible {
   background: var(--paper);
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0 var(--ink);
+  display: none;
   font-size: 0.7rem;
   font-weight: 900;
   padding: 5px 7px;
@@ -573,6 +604,12 @@ textarea:focus-visible {
 .kakao-marker--selected .kakao-marker__dot,
 .kakao-marker--selected .kakao-marker__label {
   background: var(--cheese);
+}
+
+.kakao-marker--selected .kakao-marker__label,
+.kakao-marker:hover .kakao-marker__label,
+.kakao-marker:focus-visible .kakao-marker__label {
+  display: block;
 }
 
 .kakao-marker:focus-visible {
@@ -866,6 +903,9 @@ textarea:focus-visible {
   letter-spacing: -0.025em;
   line-height: 0.95;
   margin: 24px 0 0;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 .restaurant-detail__alternate {
@@ -1753,6 +1793,67 @@ textarea:focus-visible {
   margin: 6px 0 0;
 }
 
+.admin-index-filter {
+  align-items: end;
+  background: var(--paper-deep);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.3fr) auto auto;
+  padding: 14px;
+}
+
+.admin-index-filter label {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-index-filter label > span {
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.admin-index-filter input,
+.admin-index-filter select {
+  background: #fffdf6;
+  border: 2px solid var(--ink);
+  font-weight: 700;
+  min-height: 42px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.admin-index-filter button,
+.admin-index-filter > a {
+  background: var(--cheese);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-small);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.admin-index-filter > a {
+  background: var(--paper);
+}
+
+.admin-index-results {
+  color: var(--muted-ink);
+  font-size: 0.74rem;
+  font-weight: 800;
+  margin: -8px 0 0;
+}
+
+.admin-index-results strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
 .admin-restaurant-list {
   display: grid;
   gap: 14px;
@@ -1822,6 +1923,18 @@ textarea:focus-visible {
   font-weight: 900;
   margin-top: 24px;
   text-underline-offset: 4px;
+}
+
+.admin-restaurant-list__empty {
+  background: var(--paper);
+  border: 3px dashed var(--ink);
+  color: var(--muted-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
 }
 
 .restaurant-admin-editor,
@@ -2096,14 +2209,12 @@ textarea:focus-visible {
 .admin-form-actions {
   background: var(--ink);
   border: 3px solid var(--ink);
-  bottom: 12px;
   box-shadow: var(--shadow-small);
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   padding: 12px;
-  position: sticky;
-  z-index: 20;
+  margin-top: 8px;
 }
 
 .admin-form-actions button {
@@ -2622,6 +2733,10 @@ textarea:focus-visible {
 }
 
 @media (max-width: 760px) {
+  :root {
+    --site-header-height: 72px;
+  }
+
   .site-header {
     align-items: flex-start;
     min-height: 72px;
@@ -2681,7 +2796,7 @@ textarea:focus-visible {
 
   .atlas-filter-dock {
     position: sticky;
-    top: 72px;
+    top: var(--site-header-height);
   }
 
   .restaurant-filters {
@@ -2740,7 +2855,7 @@ textarea:focus-visible {
     box-shadow: var(--shadow-small);
     display: grid;
     left: 14px;
-    padding: 16px 48px 16px 16px;
+    padding: 16px 62px 16px 16px;
     position: absolute;
     right: 14px;
     z-index: 8;
@@ -2753,12 +2868,12 @@ textarea:focus-visible {
     cursor: pointer;
     display: flex;
     font-size: 1.1rem;
-    height: 30px;
+    height: 44px;
     justify-content: center;
     position: absolute;
-    right: 11px;
-    top: 11px;
-    width: 30px;
+    right: 6px;
+    top: 6px;
+    width: 44px;
   }
 
   .mobile-restaurant-sheet > span {
@@ -2843,6 +2958,7 @@ textarea:focus-visible {
   }
 
   .admin-restaurant-list,
+  .admin-index-filter,
   .admin-form-grid,
   .admin-repeat-row,
   .admin-place-selection,
@@ -2854,6 +2970,11 @@ textarea:focus-visible {
 
   .admin-video-url-row {
     align-items: stretch;
+  }
+
+  .admin-index-filter > a,
+  .admin-index-filter > button {
+    width: 100%;
   }
 
   .admin-video-metadata > .admin-form-grid {
@@ -2873,7 +2994,6 @@ textarea:focus-visible {
   }
 
   .admin-form-actions {
-    bottom: 8px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
   }

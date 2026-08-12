@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import {
   useActionState,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -86,9 +88,11 @@ function parseSnapshotRows<T>(value: string | undefined): T[] | null {
   }
 }
 
-function FieldError({ errors }: { errors?: string[] }) {
+function FieldError({ errors, id }: { errors?: string[]; id?: string }) {
   return errors?.[0] ? (
-    <small className="form-field-error">{errors[0]}</small>
+    <small className="form-field-error" id={id}>
+      {errors[0]}
+    </small>
   ) : null;
 }
 
@@ -181,6 +185,7 @@ export function RestaurantForm({
   initialValue = EMPTY_VALUE,
 }: RestaurantFormProps) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   async function submitRestaurant(
     previousState: RestaurantAdminActionState,
     formData: FormData,
@@ -200,6 +205,12 @@ export function RestaurantForm({
     submitRestaurant,
     INITIAL_RESTAURANT_ADMIN_STATE,
   );
+
+  useEffect(() => {
+    formRef.current
+      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+      ?.focus();
+  }, [state.fieldErrors]);
   const snapshot = state.formValues;
   const restoredKakaoPlaceId =
     snapshot?.kakaoPlaceId ?? initialValue.kakaoPlaceId ?? "";
@@ -306,6 +317,7 @@ export function RestaurantForm({
         className="restaurant-admin-form"
         onReset={(event) => event.preventDefault()}
         onSubmit={confirmPublication}
+        ref={formRef}
       >
         <input name="id" type="hidden" value={initialValue.id ?? ""} />
         <input
@@ -333,6 +345,10 @@ export function RestaurantForm({
             <label>
               <span>상호명</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.name ? "restaurant-name-error" : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.name)}
                 maxLength={160}
                 name="name"
                 onChange={(event) =>
@@ -344,7 +360,10 @@ export function RestaurantForm({
                 required
                 value={details.name}
               />
-              <FieldError errors={state.fieldErrors?.name} />
+              <FieldError
+                errors={state.fieldErrors?.name}
+                id="restaurant-name-error"
+              />
             </label>
             <label>
               <span>다른 이름</span>
@@ -363,6 +382,10 @@ export function RestaurantForm({
             <label>
               <span>슬러그</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.slug ? "restaurant-slug-error" : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.slug)}
                 maxLength={160}
                 name="slug"
                 onChange={(event) =>
@@ -376,11 +399,20 @@ export function RestaurantForm({
                 required
                 value={details.slug}
               />
-              <FieldError errors={state.fieldErrors?.slug} />
+              <FieldError
+                errors={state.fieldErrors?.slug}
+                id="restaurant-slug-error"
+              />
             </label>
             <label>
               <span>지역</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.region
+                    ? "restaurant-region-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.region)}
                 maxLength={160}
                 name="region"
                 onChange={(event) =>
@@ -393,11 +425,18 @@ export function RestaurantForm({
                 required
                 value={details.region}
               />
-              <FieldError errors={state.fieldErrors?.region} />
+              <FieldError
+                errors={state.fieldErrors?.region}
+                id="restaurant-region-error"
+              />
             </label>
             <label>
               <span>형태</span>
               <select
+                aria-describedby={
+                  state.fieldErrors?.kind ? "restaurant-kind-error" : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.kind)}
                 name="kind"
                 onChange={(event) =>
                   setDetails((current) => ({
@@ -412,7 +451,10 @@ export function RestaurantForm({
                 <option value="popup">기간 한정 팝업</option>
                 <option value="franchise">프랜차이즈</option>
               </select>
-              <FieldError errors={state.fieldErrors?.kind} />
+              <FieldError
+                errors={state.fieldErrors?.kind}
+                id="restaurant-kind-error"
+              />
             </label>
             <label className="admin-form-grid__wide">
               <span>설명</span>
@@ -446,6 +488,12 @@ export function RestaurantForm({
             <label className="admin-form-grid__wide">
               <span>정확한 주소</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.address
+                    ? "restaurant-address-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.address)}
                 name="address"
                 onChange={(event) =>
                   setLocation((current) => ({
@@ -455,7 +503,10 @@ export function RestaurantForm({
                 }
                 value={location.address}
               />
-              <FieldError errors={state.fieldErrors?.address} />
+              <FieldError
+                errors={state.fieldErrors?.address}
+                id="restaurant-address-error"
+              />
             </label>
             <label>
               <span>Kakao 장소 ID</span>
@@ -473,6 +524,12 @@ export function RestaurantForm({
             <label>
               <span>기본 정보 출처 URL</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.sourceUrl
+                    ? "restaurant-source-url-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.sourceUrl)}
                 name="sourceUrl"
                 onChange={(event) =>
                   setSource((current) => ({
@@ -484,11 +541,20 @@ export function RestaurantForm({
                 type="url"
                 value={source.url}
               />
-              <FieldError errors={state.fieldErrors?.sourceUrl} />
+              <FieldError
+                errors={state.fieldErrors?.sourceUrl}
+                id="restaurant-source-url-error"
+              />
             </label>
             <label>
               <span>위도</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.latitude
+                    ? "restaurant-latitude-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.latitude)}
                 inputMode="decimal"
                 name="latitude"
                 onChange={(event) =>
@@ -499,11 +565,20 @@ export function RestaurantForm({
                 }
                 value={location.latitude}
               />
-              <FieldError errors={state.fieldErrors?.latitude} />
+              <FieldError
+                errors={state.fieldErrors?.latitude}
+                id="restaurant-latitude-error"
+              />
             </label>
             <label>
               <span>경도</span>
               <input
+                aria-describedby={
+                  state.fieldErrors?.longitude
+                    ? "restaurant-longitude-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(state.fieldErrors?.longitude)}
                 inputMode="decimal"
                 name="longitude"
                 onChange={(event) =>
@@ -514,7 +589,10 @@ export function RestaurantForm({
                 }
                 value={location.longitude}
               />
-              <FieldError errors={state.fieldErrors?.longitude} />
+              <FieldError
+                errors={state.fieldErrors?.longitude}
+                id="restaurant-longitude-error"
+              />
             </label>
           </div>
         </section>
