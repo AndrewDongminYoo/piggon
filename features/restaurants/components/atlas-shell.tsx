@@ -41,11 +41,19 @@ export function AtlasShell({
 }: AtlasShellProps) {
   const router = useRouter();
   const [atlasState, setAtlasState] = useState(initialState);
+  const initialUrlState = serializeAtlasUrlState(initialState);
+  const [previousInitialUrlState, setPreviousInitialUrlState] =
+    useState(initialUrlState);
+
+  if (previousInitialUrlState !== initialUrlState) {
+    setPreviousInitialUrlState(initialUrlState);
+    setAtlasState(initialState);
+  }
 
   const updateAtlasState = useCallback(
     (nextState: AtlasUrlState) => {
-      setAtlasState(nextState);
       const query = serializeAtlasUrlState(nextState);
+      setAtlasState(nextState);
       router.replace(query ? `/?${query}` : "/", { scroll: false });
     },
     [router],
