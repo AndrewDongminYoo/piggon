@@ -6,16 +6,22 @@ cli:
 # Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
 plugins:
   sources:
+    - id: quality-configs
+      ref: v0.5.0
+      uri: https://github.com/AndrewDongminYoo/quality-configs
     - id: trunk
       ref: v1.11.0
       uri: https://github.com/trunk-io/plugins
 # Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
 runtimes:
   enabled:
-    - node@22.16.0
-    - python@3.14.4
+    - node@22.22.3
+    - python@3.10.8
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  disabled:
+    - dotenv-linter
+    - oxipng
   enabled:
     - cspell@10.0.1
     - eslint@10.8.1
@@ -24,14 +30,17 @@ lint:
     - git-diff-check
     - markdownlint@0.49.1
     - osv-scanner@2.2.4
-    - prettier@3.9.6
+    - prettier@3.9.6:
+        packages:
+          - prettier-plugin-tailwindcss@0.8.1
     - svgo@4.0.2
     - trivy@0.70.0
     - trufflehog@3.90.13
     - yamllint@1.38.0
 actions:
+  disabled:
+    - trunk-fmt-pre-commit
   enabled:
     - trunk-announce
     - trunk-check-pre-push
-    - trunk-fmt-pre-commit
     - trunk-upgrade-available

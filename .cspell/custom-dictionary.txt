@@ -1,13 +1,14 @@
+SIWS
+TOTP
 hcaptcha
 kakao
 logomark
 migra
 orioledb
+oxipng
 pgdelta
 piggon
 seongsu
-SIWS
-TOTP
 unrs-resolver
 webp
 workos
