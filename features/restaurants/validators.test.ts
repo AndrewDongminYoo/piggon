@@ -1,16 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  parseInstagramUrl,
-  parseTimestamp,
-  parseYouTubeUrl,
-} from "./validators";
+import { parseInstagramUrl, parseTimestamp, parseYouTubeUrl } from "./validators";
 
 describe("parseYouTubeUrl", () => {
   it("parses a canonical video URL and timestamp", () => {
-    expect(
-      parseYouTubeUrl("https://www.youtube.com/watch?v=2lozYHXjAzY&t=2m5s"),
-    ).toEqual({
+    expect(parseYouTubeUrl("https://www.youtube.com/watch?v=2lozYHXjAzY&t=2m5s")).toEqual({
       videoId: "2lozYHXjAzY",
       startSeconds: 125,
     });
@@ -25,9 +19,7 @@ describe("parseYouTubeUrl", () => {
 
   it("rejects lookalike hosts", () => {
     expect(() =>
-      parseYouTubeUrl(
-        "https://youtube.com.attacker.example/watch?v=2lozYHXjAzY",
-      ),
+      parseYouTubeUrl("https://youtube.com.attacker.example/watch?v=2lozYHXjAzY")
     ).toThrow();
   });
 });
@@ -48,12 +40,12 @@ describe("parseTimestamp", () => {
 });
 
 describe("parseInstagramUrl", () => {
-  it.each([
-    "https://www.instagram.com/p/example/",
-    "https://instagram.com/reel/example/",
-  ])("accepts a public post URL", (input) => {
-    expect(parseInstagramUrl(input)).toBe(input);
-  });
+  it.each(["https://www.instagram.com/p/example/", "https://instagram.com/reel/example/"])(
+    "accepts a public post URL",
+    (input) => {
+      expect(parseInstagramUrl(input)).toBe(input);
+    }
+  );
 
   it("rejects profile URLs", () => {
     expect(() => parseInstagramUrl("https://instagram.com/example")).toThrow();

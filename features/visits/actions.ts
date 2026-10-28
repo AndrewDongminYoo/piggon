@@ -40,12 +40,12 @@ function getText(formData: FormData, name: string): string {
 }
 
 function getFieldErrors(
-  fieldErrors: Record<string, string[] | undefined>,
+  fieldErrors: Record<string, string[] | undefined>
 ): Record<string, string[]> {
   return Object.fromEntries(
     Object.entries(fieldErrors).filter(
-      (entry): entry is [string, string[]] => entry[1] !== undefined,
-    ),
+      (entry): entry is [string, string[]] => entry[1] !== undefined
+    )
   );
 }
 
@@ -65,7 +65,7 @@ function getCurrentSeoulDate(): string {
 
 async function getPublishedRestaurant(
   supabase: SupabaseClient,
-  restaurantId: string,
+  restaurantId: string
 ): Promise<{ id: string; slug: string } | null> {
   const { data, error } = await supabase
     .from("restaurants")
@@ -80,7 +80,7 @@ async function getPublishedRestaurant(
 async function getOwnedVisit(
   supabase: SupabaseClient,
   visitId: string,
-  userId: string,
+  userId: string
 ): Promise<{
   id: string;
   photo_path: string | null;
@@ -98,7 +98,7 @@ async function getOwnedVisit(
 
 async function saveReview(
   supabase: SupabaseClient,
-  input: { body: string; rating: number; visitId: string },
+  input: { body: string; rating: number; visitId: string }
 ): Promise<boolean> {
   const { data: existingReview, error: readError } = await supabase
     .from("reviews")
@@ -124,21 +124,15 @@ async function saveReview(
   return !error;
 }
 
-async function deleteReviewForVisit(
-  supabase: SupabaseClient,
-  visitId: string,
-): Promise<boolean> {
-  const { error } = await supabase
-    .from("reviews")
-    .delete()
-    .eq("visit_id", visitId);
+async function deleteReviewForVisit(supabase: SupabaseClient, visitId: string): Promise<boolean> {
+  const { error } = await supabase.from("reviews").delete().eq("visit_id", visitId);
 
   return !error;
 }
 
 export async function saveDisplayName(
   _previousState: VisitActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VisitActionState> {
   const user = await requireUser();
   const parsed = profileInputSchema.safeParse({
@@ -159,7 +153,7 @@ export async function saveDisplayName(
       display_name: parsed.data.displayName,
       id: user.id,
     },
-    { onConflict: "id" },
+    { onConflict: "id" }
   );
 
   if (error) {
@@ -175,7 +169,7 @@ export async function saveDisplayName(
 
 export async function upsertVisit(
   _previousState: VisitActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VisitActionState> {
   const user = await requireUser();
   const photoPath = getText(formData, "photoPath") || null;
@@ -213,11 +207,10 @@ export async function upsertVisit(
   }
 
   const supabase = await createClient();
-  const [{ data: profile, error: profileError }, restaurant] =
-    await Promise.all([
-      supabase.from("profiles").select("id").eq("id", user.id).maybeSingle(),
-      getPublishedRestaurant(supabase, parsed.data.restaurantId),
-    ]);
+  const [{ data: profile, error: profileError }, restaurant] = await Promise.all([
+    supabase.from("profiles").select("id").eq("id", user.id).maybeSingle(),
+    getPublishedRestaurant(supabase, parsed.data.restaurantId),
+  ]);
 
   if (profileError || !profile) {
     return {
@@ -236,13 +229,7 @@ export async function upsertVisit(
   }
 
   if (parsed.data.photoPath) {
-    if (
-      !isOwnedVisitPhotoPath(
-        parsed.data.photoPath,
-        user.id,
-        parsed.data.restaurantId,
-      )
-    ) {
+    if (!isOwnedVisitPhotoPath(parsed.data.photoPath, user.id, parsed.data.restaurantId)) {
       return {
         message: "업로드한 사진 경로를 확인할 수 없습니다.",
         photoPath: parsed.data.photoPath,
@@ -252,10 +239,7 @@ export async function upsertVisit(
 
     // Pinned before the download so the bytes checked below and the version
     // recorded afterwards describe the same object.
-    const evidenceVersion = await readVisitEvidenceVersion(
-      parsed.data.photoPath,
-      user.id,
-    );
+    const evidenceVersion = await readVisitEvidenceVersion(parsed.data.photoPath, user.id);
 
     if (evidenceVersion === null) {
       return {
@@ -301,13 +285,7 @@ export async function upsertVisit(
     // The signature check above is application code, so the write policy cannot
     // see it. Recording the result is what lets the policy require it — against
     // the pinned version, so an overwrite in between invalidates the attempt.
-    if (
-      !(await recordValidatedVisitEvidence(
-        parsed.data.photoPath,
-        user.id,
-        evidenceVersion,
-      ))
-    ) {
+    if (!(await recordValidatedVisitEvidence(parsed.data.photoPath, user.id, evidenceVersion))) {
       return {
         message: "업로드한 사진을 확인하지 못했습니다.",
         photoPath: parsed.data.photoPath,
@@ -338,8 +316,7 @@ export async function upsertVisit(
   // could then reattach a path the other request was about to delete.
   if (previousVisit && !parsed.data.visitVersion) {
     return {
-      message:
-        "이 방문 인증을 다시 불러와 주세요. 새로고침한 뒤 다시 시도해 주세요.",
+      message: "이 방문 인증을 다시 불러와 주세요. 새로고침한 뒤 다시 시도해 주세요.",
       photoPath: parsed.data.photoPath,
       status: "error",
     };
@@ -372,22 +349,15 @@ export async function upsertVisit(
 
   if (!visit) {
     return {
-      message:
-        "이 방문 인증이 다른 곳에서 먼저 변경되었습니다. 새로고침한 뒤 다시 시도해 주세요.",
+      message: "이 방문 인증이 다른 곳에서 먼저 변경되었습니다. 새로고침한 뒤 다시 시도해 주세요.",
       photoPath: parsed.data.photoPath,
       status: "error",
     };
   }
 
   let photoCleanupPending = false;
-  if (
-    previousVisit?.photo_path &&
-    previousVisit.photo_path !== visit.photo_path
-  ) {
-    const cleanupResult = await cleanupStoredVisitPhoto(
-      previousVisit.photo_path,
-      user.id,
-    );
+  if (previousVisit?.photo_path && previousVisit.photo_path !== visit.photo_path) {
+    const cleanupResult = await cleanupStoredVisitPhoto(previousVisit.photo_path, user.id);
     photoCleanupPending = !cleanupResult;
   }
 
@@ -451,10 +421,7 @@ export async function upsertVisit(
 // and they have to free the same set. Deleting an object can fail and land in the
 // retry queue, where it still holds budget but is far too recent for the age-gated
 // sweep, so a path that only swept would stay blocked until that object aged out.
-async function freeVisitEvidenceBudget(
-  userId: string,
-  exceptPath: string | null,
-): Promise<void> {
+async function freeVisitEvidenceBudget(userId: string, exceptPath: string | null): Promise<void> {
   await retryStoredVisitPhotoCleanup(userId);
   await reclaimStoredAbandonedVisitPhotos(userId, exceptPath);
 }
@@ -473,7 +440,7 @@ export async function reclaimAbandonedVisitEvidence(): Promise<void> {
 // orphan counting against the uploader's evidence quota.
 export async function discardUploadedVisitPhoto(
   restaurantId: string,
-  photoPath: string,
+  photoPath: string
 ): Promise<void> {
   const user = await requireUser();
   if (!isOwnedVisitPhotoPath(photoPath, user.id, restaurantId)) {
@@ -498,7 +465,7 @@ export async function discardUploadedVisitPhoto(
 
 export async function upsertReview(
   _previousState: VisitActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VisitActionState> {
   const user = await requireUser();
   const parsed = reviewInputSchema.safeParse({
@@ -524,10 +491,7 @@ export async function upsertReview(
     };
   }
 
-  const restaurant = await getPublishedRestaurant(
-    supabase,
-    visit.restaurant_id,
-  );
+  const restaurant = await getPublishedRestaurant(supabase, visit.restaurant_id);
   if (!restaurant) {
     return {
       message: "현재 공개된 맛집의 방문 리뷰만 수정할 수 있습니다.",
@@ -554,7 +518,7 @@ export async function upsertReview(
 
 export async function deleteVisit(
   _previousState: VisitActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VisitActionState> {
   const user = await requireUser();
   await retryStoredVisitPhotoCleanup(user.id);
@@ -575,10 +539,7 @@ export async function deleteVisit(
     };
   }
 
-  const restaurant = await getPublishedRestaurant(
-    supabase,
-    visit.restaurant_id,
-  );
+  const restaurant = await getPublishedRestaurant(supabase, visit.restaurant_id);
   // Clean the path the delete actually removed, not the one read a moment ago. A
   // concurrent replacement can commit a new path in between, and cleaning the
   // stale one would strand the new object as unreferenced evidence forever.
@@ -606,10 +567,7 @@ export async function deleteVisit(
 
   let cleanupFailed = false;
   if (deleted.photo_path) {
-    cleanupFailed = !(await cleanupStoredVisitPhoto(
-      deleted.photo_path,
-      user.id,
-    ));
+    cleanupFailed = !(await cleanupStoredVisitPhoto(deleted.photo_path, user.id));
   }
 
   if (restaurant) {
@@ -628,7 +586,7 @@ export async function deleteVisit(
 
 export async function deleteReview(
   _previousState: VisitActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VisitActionState> {
   const user = await requireUser();
   const parsed = deleteReviewInputSchema.safeParse({
@@ -661,10 +619,7 @@ export async function deleteReview(
     return { message: "리뷰를 삭제하지 못했습니다.", status: "error" };
   }
 
-  const restaurant = await getPublishedRestaurant(
-    supabase,
-    visit.restaurant_id,
-  );
+  const restaurant = await getPublishedRestaurant(supabase, visit.restaurant_id);
   if (restaurant) {
     refreshVisitPages(restaurant.slug);
   } else {

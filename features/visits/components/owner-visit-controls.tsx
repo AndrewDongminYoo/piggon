@@ -21,19 +21,17 @@ function ActionMessage({ state }: { state: VisitActionState }) {
 export function OwnerVisitControls({ visit }: { visit: UserCollectionItem }) {
   const [visitState, visitAction, isDeletingVisit] = useActionState(
     deleteVisit,
-    INITIAL_VISIT_ACTION_STATE,
+    INITIAL_VISIT_ACTION_STATE
   );
   const [reviewState, reviewAction, isDeletingReview] = useActionState(
     deleteReview,
-    INITIAL_VISIT_ACTION_STATE,
+    INITIAL_VISIT_ACTION_STATE
   );
 
   return (
     <div className="visit-card__owner-controls">
       {visit.restaurant.slug ? (
-        <Link href={`/restaurants/${visit.restaurant.slug}`}>
-          인증 수정하기
-        </Link>
+        <Link href={`/restaurants/${visit.restaurant.slug}`}>인증 수정하기</Link>
       ) : (
         <small>현재 비공개 상태라 수정은 할 수 없지만 삭제는 가능합니다.</small>
       )}
@@ -41,11 +39,7 @@ export function OwnerVisitControls({ visit }: { visit: UserCollectionItem }) {
         <form
           action={reviewAction}
           onSubmit={(event) => {
-            if (
-              !window.confirm(
-                "리뷰를 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
-              )
-            ) {
+            if (!window.confirm("리뷰를 삭제할까요? 이 작업은 되돌릴 수 없습니다.")) {
               event.preventDefault();
             }
           }}
@@ -60,9 +54,7 @@ export function OwnerVisitControls({ visit }: { visit: UserCollectionItem }) {
         action={visitAction}
         onSubmit={(event) => {
           if (
-            !window.confirm(
-              "방문 인증과 연결된 리뷰를 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
-            )
+            !window.confirm("방문 인증과 연결된 리뷰를 삭제할까요? 이 작업은 되돌릴 수 없습니다.")
           ) {
             event.preventDefault();
           }

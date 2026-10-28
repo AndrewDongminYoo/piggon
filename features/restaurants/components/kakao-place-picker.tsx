@@ -25,18 +25,12 @@ function normalizePlaceUrl(value: string): string {
   return url.toString();
 }
 
-export function KakaoPlacePicker({
-  appKey,
-  onChange,
-  value,
-}: KakaoPlacePickerProps) {
+export function KakaoPlacePicker({ appKey, onChange, value }: KakaoPlacePickerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const searchSequence = useRef(0);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceSearchResult[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "empty">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "loading" | "error" | "empty">("idle");
 
   function searchPlaces(): void {
     const keyword = query.trim();

@@ -21,11 +21,7 @@ export function SiteHeader({ onReplayIntro }: SiteHeaderProps) {
       <nav aria-label="주요 메뉴" className="site-nav">
         <Link href="/">맛집 지도</Link>
         <Link href="/me">먹어본 피자</Link>
-        <button
-          className="box-replay-button"
-          onClick={onReplayIntro}
-          type="button"
-        >
+        <button className="box-replay-button" onClick={onReplayIntro} type="button">
           <span aria-hidden="true" />
           박스 다시 열기
         </button>

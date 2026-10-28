@@ -49,10 +49,7 @@ type MetadataResponse = {
   videoId: string;
 };
 
-function withClientKeys(
-  links: VideoEditorValue["links"],
-  prefix: string,
-): ClientLink[] {
+function withClientKeys(links: VideoEditorValue["links"], prefix: string): ClientLink[] {
   return links.map((link, index) => ({
     ...link,
     clientKey: `${prefix}-${index}`,
@@ -86,17 +83,12 @@ function ActionMessage({ state }: { state: VideoAdminActionState }) {
 }
 
 function FieldError({ errors }: { errors?: string[] }) {
-  return errors?.[0] ? (
-    <small className="form-field-error">{errors[0]}</small>
-  ) : null;
+  return errors?.[0] ? <small className="form-field-error">{errors[0]}</small> : null;
 }
 
 export function VideoForm({ restaurants, videos }: VideoFormProps) {
   const router = useRouter();
-  async function submitVideo(
-    previousState: VideoAdminActionState,
-    formData: FormData,
-  ) {
+  async function submitVideo(previousState: VideoAdminActionState, formData: FormData) {
     const nextState = await saveVideoLinks(previousState, formData);
     if (nextState.status === "success") {
       router.refresh();
@@ -104,37 +96,24 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
     return nextState;
   }
 
-  const [state, action, isPending] = useActionState(
-    submitVideo,
-    INITIAL_VIDEO_ADMIN_STATE,
-  );
+  const [state, action, isPending] = useActionState(submitVideo, INITIAL_VIDEO_ADMIN_STATE);
   const snapshot = state.formValues;
-  const [selectedVideoId, setSelectedVideoId] = useState(
-    snapshot?.editingVideoId ?? "",
-  );
+  const [selectedVideoId, setSelectedVideoId] = useState(snapshot?.editingVideoId ?? "");
   const [youtubeUrl, setYouTubeUrl] = useState(snapshot?.youtubeUrl ?? "");
   const [title, setTitle] = useState(snapshot?.title ?? "");
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    snapshot?.thumbnailUrl ?? "",
-  );
+  const [thumbnailUrl, setThumbnailUrl] = useState(snapshot?.thumbnailUrl ?? "");
   const [fetchState, setFetchState] = useState<VideoEditorValue["fetchState"]>(
-    (snapshot?.fetchState as VideoEditorValue["fetchState"] | undefined) ??
-      "pending",
+    (snapshot?.fetchState as VideoEditorValue["fetchState"] | undefined) ?? "pending"
   );
-  const [links, setLinks] = useState<ClientLink[]>(
-    parseSnapshotLinks(snapshot?.links) ?? [],
-  );
+  const [links, setLinks] = useState<ClientLink[]>(parseSnapshotLinks(snapshot?.links) ?? []);
   const [lookupMessage, setLookupMessage] = useState("");
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookedUpVideoId, setLookedUpVideoId] = useState("");
 
   const previewVideoId =
-    lookedUpVideoId ||
-    videos.find((video) => video.id === selectedVideoId)?.videoId;
+    lookedUpVideoId || videos.find((video) => video.id === selectedVideoId)?.videoId;
   const previewUrl =
-    previewVideoId && isAllowedYouTubeThumbnail(thumbnailUrl, previewVideoId)
-      ? thumbnailUrl
-      : null;
+    previewVideoId && isAllowedYouTubeThumbnail(thumbnailUrl, previewVideoId) ? thumbnailUrl : null;
 
   function selectVideo(videoId: string): void {
     setSelectedVideoId(videoId);
@@ -163,9 +142,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
     setIsLookingUp(true);
     setLookupMessage("");
     try {
-      const response = await fetch(
-        `/api/youtube/oembed?url=${encodeURIComponent(youtubeUrl)}`,
-      );
+      const response = await fetch(`/api/youtube/oembed?url=${encodeURIComponent(youtubeUrl)}`);
       const metadata = (await response.json()) as MetadataResponse;
       setLookedUpVideoId(metadata.videoId);
       if (!response.ok || metadata.fetchState === "failed") {
@@ -175,7 +152,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
         setLookupMessage(
           response.ok
             ? "메타데이터를 불러오지 못했습니다. 제목과 썸네일을 직접 입력해 주세요."
-            : "지원하는 HTTPS YouTube 영상 URL을 확인해 주세요.",
+            : "지원하는 HTTPS YouTube 영상 URL을 확인해 주세요."
         );
         return;
       }
@@ -188,9 +165,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
       setFetchState("failed");
       setTitle("");
       setThumbnailUrl("");
-      setLookupMessage(
-        "메타데이터를 불러오지 못했습니다. 제목과 썸네일을 직접 입력해 주세요.",
-      );
+      setLookupMessage("메타데이터를 불러오지 못했습니다. 제목과 썸네일을 직접 입력해 주세요.");
     } finally {
       setIsLookingUp(false);
     }
@@ -199,7 +174,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
   function updateLink(
     clientKey: string,
     field: "contextNote" | "restaurantId" | "startSeconds",
-    value: string,
+    value: string
   ): void {
     setLinks((current) =>
       current.map((link) =>
@@ -208,8 +183,8 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
               ...link,
               [field]: field === "startSeconds" ? value || null : value,
             }
-          : link,
-      ),
+          : link
+      )
     );
   }
 
@@ -217,10 +192,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
     <div className="video-admin-editor">
       <label className="admin-record-picker">
         <span>기존 영상 편집</span>
-        <select
-          onChange={(event) => selectVideo(event.target.value)}
-          value={selectedVideoId}
-        >
+        <select onChange={(event) => selectVideo(event.target.value)} value={selectedVideoId}>
           <option value="">+ 새 영상 연결</option>
           {videos.map((video) => (
             <option key={video.id} value={video.id}>
@@ -245,7 +217,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
               contextNote,
               restaurantId,
               startSeconds,
-            })),
+            }))
           )}
         />
 
@@ -281,11 +253,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
               />
               <FieldError errors={state.fieldErrors?.youtubeUrl} />
             </label>
-            <button
-              disabled={isLookingUp || !youtubeUrl}
-              onClick={fetchMetadata}
-              type="button"
-            >
+            <button disabled={isLookingUp || !youtubeUrl} onClick={fetchMetadata} type="button">
               {isLookingUp ? "불러오는 중…" : "메타데이터 불러오기"}
             </button>
           </div>
@@ -296,12 +264,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
           ) : null}
           <div className="admin-video-metadata">
             {previewUrl ? (
-              <Image
-                alt="YouTube 영상 썸네일"
-                height={270}
-                src={previewUrl}
-                width={480}
-              />
+              <Image alt="YouTube 영상 썸네일" height={270} src={previewUrl} width={480} />
             ) : (
               <div className="admin-video-placeholder" aria-hidden="true">
                 ▶
@@ -334,8 +297,8 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                 <FieldError errors={state.fieldErrors?.thumbnailUrl} />
               </label>
               <p className="admin-form-help admin-form-grid__wide">
-                상태: {fetchState}. 자동 조회가 실패한 경우에만 제목과 YouTube
-                썸네일을 직접 보정합니다.
+                상태: {fetchState}. 자동 조회가 실패한 경우에만 제목과 YouTube 썸네일을 직접
+                보정합니다.
               </p>
             </div>
           </div>
@@ -372,18 +335,13 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                   <span>맛집</span>
                   <select
                     onChange={(event) =>
-                      updateLink(
-                        link.clientKey,
-                        "restaurantId",
-                        event.target.value,
-                      )
+                      updateLink(link.clientKey, "restaurantId", event.target.value)
                     }
                     value={link.restaurantId}
                   >
                     {restaurants.map((restaurant) => (
                       <option key={restaurant.id} value={restaurant.id}>
-                        {restaurant.name} · {restaurant.region} ·
-                        {restaurant.status}
+                        {restaurant.name} · {restaurant.region} ·{restaurant.status}
                       </option>
                     ))}
                   </select>
@@ -394,11 +352,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                     max={2_147_483_647}
                     min={0}
                     onChange={(event) =>
-                      updateLink(
-                        link.clientKey,
-                        "startSeconds",
-                        event.target.value,
-                      )
+                      updateLink(link.clientKey, "startSeconds", event.target.value)
                     }
                     type="number"
                     value={link.startSeconds ?? ""}
@@ -409,11 +363,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                   <input
                     maxLength={500}
                     onChange={(event) =>
-                      updateLink(
-                        link.clientKey,
-                        "contextNote",
-                        event.target.value,
-                      )
+                      updateLink(link.clientKey, "contextNote", event.target.value)
                     }
                     placeholder="예: 이짜 소개 구간"
                     value={link.contextNote ?? ""}
@@ -423,9 +373,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
                   className="admin-remove-row"
                   onClick={() =>
                     setLinks((current) =>
-                      current.filter(
-                        (candidate) => candidate.clientKey !== link.clientKey,
-                      ),
+                      current.filter((candidate) => candidate.clientKey !== link.clientKey)
                     )
                   }
                   type="button"
@@ -436,9 +384,7 @@ export function VideoForm({ restaurants, videos }: VideoFormProps) {
             ))}
           </div>
           {links.length === 0 ? (
-            <p className="admin-empty-state">
-              영상을 공개하려면 맛집을 한 곳 이상 연결해 주세요.
-            </p>
+            <p className="admin-empty-state">영상을 공개하려면 맛집을 한 곳 이상 연결해 주세요.</p>
           ) : null}
           <FieldError errors={state.fieldErrors?.links} />
         </section>

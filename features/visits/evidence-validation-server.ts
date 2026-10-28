@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // can still overwrite the path.
 export async function readVisitEvidenceVersion(
   path: string,
-  userId: string,
+  userId: string
 ): Promise<string | null> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("visit_evidence_version", {
@@ -29,7 +29,7 @@ export async function readVisitEvidenceVersion(
 export async function recordValidatedVisitEvidence(
   path: string,
   userId: string,
-  expectedVersion: string,
+  expectedVersion: string
 ): Promise<boolean> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("record_visit_evidence_validation", {

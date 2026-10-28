@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 import { requireAdmin } from "@/features/admin/require-admin";
-import {
-  canonicalizeYouTubeUrl,
-  isAllowedYouTubeThumbnail,
-} from "@/features/admin/video-schema";
+import { canonicalizeYouTubeUrl, isAllowedYouTubeThumbnail } from "@/features/admin/video-schema";
 
 const oEmbedResponseSchema = z.object({
   thumbnail_url: z.string().max(2048),

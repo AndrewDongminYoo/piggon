@@ -44,17 +44,15 @@ describe("decodesAsVisitImage", () => {
   });
 
   it("rejects a WebP container with no image chunk", async () => {
-    const bytes = Uint8Array.from([
-      0x52, 0x49, 0x46, 0x46, 4, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
-    ]);
+    const bytes = Uint8Array.from([0x52, 0x49, 0x46, 0x46, 4, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
 
     await expect(decodesAsVisitImage(bytes, "image/webp")).resolves.toBe(false);
   });
 
   it("rejects a truncated image whose header still parses", async () => {
-    await expect(
-      decodesAsVisitImage(png.subarray(0, png.length - 20), "image/png"),
-    ).resolves.toBe(false);
+    await expect(decodesAsVisitImage(png.subarray(0, png.length - 20), "image/png")).resolves.toBe(
+      false
+    );
   });
 
   it("rejects an image whose format is not the one claimed", async () => {

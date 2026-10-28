@@ -17,18 +17,13 @@ export function RestaurantList({
   totalCount,
 }: RestaurantListProps) {
   return (
-    <section
-      aria-labelledby="restaurant-list-title"
-      className="restaurant-list"
-    >
+    <section aria-labelledby="restaurant-list-title" className="restaurant-list">
       <header className="restaurant-list__header">
         <div>
           <span>CURATED INDEX</span>
           <h2 id="restaurant-list-title">피자 원정 목록</h2>
         </div>
-        <strong aria-label={`${restaurants.length}개 검색 결과`}>
-          {restaurants.length}
-        </strong>
+        <strong aria-label={`${restaurants.length}개 검색 결과`}>{restaurants.length}</strong>
       </header>
       {restaurants.length > 0 ? (
         <ol className="restaurant-list__items">
@@ -47,9 +42,7 @@ export function RestaurantList({
         <div className="restaurant-list__empty">
           <span aria-hidden="true">□</span>
           <strong>
-            {totalCount === 0
-              ? "공개할 맛집을 검증하고 있습니다"
-              : "조건에 맞는 맛집이 없습니다"}
+            {totalCount === 0 ? "공개할 맛집을 검증하고 있습니다" : "조건에 맞는 맛집이 없습니다"}
           </strong>
           <p>
             {totalCount === 0

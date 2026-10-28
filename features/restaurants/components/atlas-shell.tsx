@@ -34,16 +34,11 @@ function readKakaoMapAppKey(): string {
   }
 }
 
-export function AtlasShell({
-  currentDate,
-  initialState,
-  restaurants,
-}: AtlasShellProps) {
+export function AtlasShell({ currentDate, initialState, restaurants }: AtlasShellProps) {
   const router = useRouter();
   const [atlasState, setAtlasState] = useState(initialState);
   const initialUrlState = serializeAtlasUrlState(initialState);
-  const [previousInitialUrlState, setPreviousInitialUrlState] =
-    useState(initialUrlState);
+  const [previousInitialUrlState, setPreviousInitialUrlState] = useState(initialUrlState);
 
   if (previousInitialUrlState !== initialUrlState) {
     setPreviousInitialUrlState(initialUrlState);
@@ -56,15 +51,15 @@ export function AtlasShell({
       setAtlasState(nextState);
       router.replace(query ? `/?${query}` : "/", { scroll: false });
     },
-    [router],
+    [router]
   );
   const kakaoMapAppKey = readKakaoMapAppKey();
   const filteredRestaurants = useMemo(
     () => filterRestaurants(restaurants, atlasState.filter, currentDate),
-    [atlasState.filter, currentDate, restaurants],
+    [atlasState.filter, currentDate, restaurants]
   );
   const selectedRestaurant = filteredRestaurants.find(
-    (restaurant) => restaurant.slug === atlasState.selectedRestaurantSlug,
+    (restaurant) => restaurant.slug === atlasState.selectedRestaurantSlug
   );
   const visibleSelectedRestaurantId = selectedRestaurant?.id ?? null;
   const handleSelect = useCallback(
@@ -80,7 +75,7 @@ export function AtlasShell({
         selectedRestaurantSlug: restaurant.slug,
       });
     },
-    [atlasState, restaurants, updateAtlasState],
+    [atlasState, restaurants, updateAtlasState]
   );
   const handleFilterChange = useCallback(
     (filter: AtlasUrlState["filter"]) => {
@@ -90,23 +85,22 @@ export function AtlasShell({
         selectedRestaurantSlug: null,
       });
     },
-    [atlasState, updateAtlasState],
+    [atlasState, updateAtlasState]
   );
   const handleMobileViewChange = useCallback(
     (mobileView: AtlasMobileView) => {
       updateAtlasState({ ...atlasState, mobileView });
     },
-    [atlasState, updateAtlasState],
+    [atlasState, updateAtlasState]
   );
   const clearSelectedRestaurant = useCallback(() => {
     updateAtlasState({ ...atlasState, selectedRestaurantSlug: null });
   }, [atlasState, updateAtlasState]);
   const videoRestaurantCount = restaurants.filter(
-    (restaurant) => restaurant.videos.length > 0,
+    (restaurant) => restaurant.videos.length > 0
   ).length;
   const mappedRestaurantCount = restaurants.filter(
-    (restaurant) =>
-      restaurant.latitude !== null && restaurant.longitude !== null,
+    (restaurant) => restaurant.latitude !== null && restaurant.longitude !== null
   ).length;
 
   return (
@@ -119,8 +113,8 @@ export function AtlasShell({
             <br className="atlas-hero__line-break" /> 다음 한 판을 위하여
           </h1>
           <p>
-            피자꼰대 영상 속 맛집부터 인증과 수상 이력이 확인된 피자집까지,
-            근거를 확인한 장소만 한 장의 지도에 모읍니다.
+            피자꼰대 영상 속 맛집부터 인증과 수상 이력이 확인된 피자집까지, 근거를 확인한 장소만 한
+            장의 지도에 모읍니다.
           </p>
         </div>
         <dl className="atlas-stats">
@@ -140,10 +134,7 @@ export function AtlasShell({
       </section>
 
       <div className="atlas-filter-dock">
-        <RestaurantFilters
-          filter={atlasState.filter}
-          onChange={handleFilterChange}
-        />
+        <RestaurantFilters filter={atlasState.filter} onChange={handleFilterChange} />
         <div className="atlas-mobile-toggle">
           <SegmentedControl
             ariaLabel="맛집 보기 방식"
@@ -175,27 +166,18 @@ export function AtlasShell({
           />
           {selectedRestaurant ? (
             <div className="mobile-restaurant-sheet">
-              <button
-                aria-label="선택한 맛집 닫기"
-                onClick={clearSelectedRestaurant}
-                type="button"
-              >
+              <button aria-label="선택한 맛집 닫기" onClick={clearSelectedRestaurant} type="button">
                 ×
               </button>
               <span>{selectedRestaurant.region}</span>
               <strong>{selectedRestaurant.name}</strong>
-              <Link
-                href={`/restaurants/${encodeURIComponent(selectedRestaurant.slug)}`}
-              >
+              <Link href={`/restaurants/${encodeURIComponent(selectedRestaurant.slug)}`}>
                 상세 보기 →
               </Link>
             </div>
           ) : null}
         </section>
-        <aside
-          className="atlas-list-panel"
-          data-mobile-active={atlasState.mobileView === "list"}
-        >
+        <aside className="atlas-list-panel" data-mobile-active={atlasState.mobileView === "list"}>
           {selectedRestaurant ? (
             <RestaurantDetail
               currentDate={currentDate}

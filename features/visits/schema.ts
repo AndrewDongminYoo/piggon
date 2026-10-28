@@ -28,12 +28,12 @@ function isCalendarDate(value: string): boolean {
 
 const nullableRating = z.preprocess(
   emptyStringToNull,
-  z.union([z.coerce.number().int().min(1).max(5), z.null()]),
+  z.union([z.coerce.number().int().min(1).max(5), z.null()])
 );
 
 const nullableReviewBody = z.preprocess(
   trimmedStringOrNull,
-  z.string().min(1).max(2000).nullable(),
+  z.string().min(1).max(2000).nullable()
 );
 
 export const profileInputSchema = z.object({
@@ -43,14 +43,8 @@ export const profileInputSchema = z.object({
 export const visitInputSchema = z
   .object({
     evidenceType: z.enum(["photo", "instagram"]),
-    instagramUrl: z.preprocess(
-      trimmedStringOrNull,
-      z.string().max(2048).nullable(),
-    ),
-    photoPath: z.preprocess(
-      trimmedStringOrNull,
-      z.string().max(512).nullable(),
-    ),
+    instagramUrl: z.preprocess(trimmedStringOrNull, z.string().max(2048).nullable()),
+    photoPath: z.preprocess(trimmedStringOrNull, z.string().max(512).nullable()),
     rating: nullableRating,
     restaurantId: z.string().uuid(),
     reviewBody: nullableReviewBody,
@@ -59,7 +53,7 @@ export const visitInputSchema = z
     // first visit, so a missing field is null rather than an error.
     visitVersion: z.preprocess(
       (value) => (value === undefined ? null : trimmedStringOrNull(value)),
-      z.string().max(64).nullable(),
+      z.string().max(64).nullable()
     ),
     visitedOn: z
       .string()

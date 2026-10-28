@@ -23,25 +23,21 @@ function parseLinks(formData: FormData): unknown {
 }
 
 function getFieldErrors(
-  fieldErrors: Record<string, string[] | undefined>,
+  fieldErrors: Record<string, string[] | undefined>
 ): Record<string, string[]> {
   return Object.fromEntries(
     Object.entries(fieldErrors).filter(
-      (entry): entry is [string, string[]] => entry[1] !== undefined,
-    ),
+      (entry): entry is [string, string[]] => entry[1] !== undefined
+    )
   );
 }
 
 function getFormSnapshot(formData: FormData): Record<string, string> {
   return Object.fromEntries(
-    [
-      "editingVideoId",
-      "fetchState",
-      "links",
-      "thumbnailUrl",
-      "title",
-      "youtubeUrl",
-    ].map((name) => [name, getText(formData, name)]),
+    ["editingVideoId", "fetchState", "links", "thumbnailUrl", "title", "youtubeUrl"].map((name) => [
+      name,
+      getText(formData, name),
+    ])
   );
 }
 
@@ -55,7 +51,7 @@ function refreshVideoPages(slugs: string[]): void {
 
 export async function saveVideoLinks(
   _previousState: VideoAdminActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<VideoAdminActionState> {
   await requireAdmin();
 
@@ -104,9 +100,7 @@ export async function saveVideoLinks(
     };
   }
 
-  if (
-    !canReplaceVideoLinks(existingVideo?.id ?? null, parsed.data.editingVideoId)
-  ) {
+  if (!canReplaceVideoLinks(existingVideo?.id ?? null, parsed.data.editingVideoId)) {
     return {
       formValues,
       message: existingVideo
@@ -132,11 +126,11 @@ export async function saveVideoLinks(
     previousRestaurantIds = previousLinks.map((link) => link.restaurant_id);
   }
 
-  const idsForRevalidation = [
-    ...new Set([...restaurantIds, ...previousRestaurantIds]),
-  ];
-  const { data: affectedRestaurants, error: affectedRestaurantsError } =
-    await admin.from("restaurants").select("slug").in("id", idsForRevalidation);
+  const idsForRevalidation = [...new Set([...restaurantIds, ...previousRestaurantIds])];
+  const { data: affectedRestaurants, error: affectedRestaurantsError } = await admin
+    .from("restaurants")
+    .select("slug")
+    .in("id", idsForRevalidation);
   if (affectedRestaurantsError) {
     return {
       formValues,
@@ -155,12 +149,11 @@ export async function saveVideoLinks(
     {
       p_canonical_url: parsed.data.canonicalUrl,
       p_links: links,
-      p_metadata_fetch_state:
-        parsed.data.fetchState === "fetched" ? "fetched" : "manual",
+      p_metadata_fetch_state: parsed.data.fetchState === "fetched" ? "fetched" : "manual",
       p_thumbnail_url: parsed.data.thumbnailUrl ?? "",
       p_title: parsed.data.title,
       p_youtube_video_id: parsed.data.videoId,
-    },
+    }
   );
   if (saveError || !savedVideoId) {
     return {

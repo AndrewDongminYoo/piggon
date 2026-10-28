@@ -31,10 +31,9 @@ export function RestaurantMap({
   const mappableRestaurants = useMemo(
     () =>
       restaurants.filter(
-        (restaurant) =>
-          restaurant.latitude !== null && restaurant.longitude !== null,
+        (restaurant) => restaurant.latitude !== null && restaurant.longitude !== null
       ),
-    [restaurants],
+    [restaurants]
   );
   const hasMappableRestaurants = mappableRestaurants.length > 0;
 
@@ -79,7 +78,7 @@ export function RestaurantMap({
     const overlays = mappableRestaurants.map((restaurant) => {
       const position = new mapsApi.LatLng(
         restaurant.latitude as number,
-        restaurant.longitude as number,
+        restaurant.longitude as number
       );
       const marker = document.createElement("button");
       const dot = document.createElement("span");
@@ -88,15 +87,9 @@ export function RestaurantMap({
 
       marker.type = "button";
       marker.className = "kakao-marker";
-      marker.classList.toggle(
-        "kakao-marker--selected",
-        restaurant.id === selectedRestaurantId,
-      );
+      marker.classList.toggle("kakao-marker--selected", restaurant.id === selectedRestaurantId);
       marker.setAttribute("aria-label", `${restaurant.name} 선택`);
-      marker.setAttribute(
-        "aria-pressed",
-        String(restaurant.id === selectedRestaurantId),
-      );
+      marker.setAttribute("aria-pressed", String(restaurant.id === selectedRestaurantId));
       dot.className = "kakao-marker__dot";
       dot.setAttribute("aria-hidden", "true");
       label.className = "kakao-marker__label";
@@ -127,14 +120,7 @@ export function RestaurantMap({
         overlay.setMap(null);
       });
     };
-  }, [
-    hasMappableRestaurants,
-    map,
-    mapsApi,
-    mappableRestaurants,
-    onSelect,
-    selectedRestaurantId,
-  ]);
+  }, [hasMappableRestaurants, map, mapsApi, mappableRestaurants, onSelect, selectedRestaurantId]);
 
   useEffect(() => {
     if (!isVisible || !map || !mapsApi) {
@@ -144,16 +130,11 @@ export function RestaurantMap({
     const frame = window.requestAnimationFrame(() => {
       map.relayout();
       const selected = mappableRestaurants.find(
-        (restaurant) => restaurant.id === selectedRestaurantId,
+        (restaurant) => restaurant.id === selectedRestaurantId
       );
 
       if (selected) {
-        map.panTo(
-          new mapsApi.LatLng(
-            selected.latitude as number,
-            selected.longitude as number,
-          ),
-        );
+        map.panTo(new mapsApi.LatLng(selected.latitude as number, selected.longitude as number));
       }
     });
 

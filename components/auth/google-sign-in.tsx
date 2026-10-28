@@ -10,10 +10,7 @@ export function GoogleSignIn({ nextPath = "/" }: GoogleSignInProps) {
   });
 
   return (
-    <a
-      className="google-sign-in-link"
-      href={`/auth/login?${searchParams.toString()}`}
-    >
+    <a className="google-sign-in-link" href={`/auth/login?${searchParams.toString()}`}>
       Google로 로그인
     </a>
   );

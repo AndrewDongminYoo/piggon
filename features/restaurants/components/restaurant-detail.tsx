@@ -22,10 +22,7 @@ type RestaurantDetailProps = {
   visitContribution?: ReactNode;
 };
 
-const AVAILABILITY_COPY: Record<
-  AvailabilityState,
-  { description: string; label: string }
-> = {
+const AVAILABILITY_COPY: Record<AvailabilityState, { description: string; label: string }> = {
   current: {
     description: "등록된 운영 기간을 기준으로 지금 방문할 수 있습니다.",
     label: "지금 방문 가능",
@@ -47,13 +44,13 @@ const AVAILABILITY_COPY: Record<
 function findRelevantPeriod(
   periods: AvailabilityPeriod[],
   availability: AvailabilityState,
-  currentDate: string,
+  currentDate: string
 ): AvailabilityPeriod | null {
   if (availability === "current") {
     return (
       periods.find(
         ({ endsOn, startsOn }) =>
-          startsOn <= currentDate && (endsOn === null || currentDate <= endsOn),
+          startsOn <= currentDate && (endsOn === null || currentDate <= endsOn)
       ) ?? null
     );
   }
@@ -69,7 +66,7 @@ function findRelevantPeriod(
   if (availability === "ended") {
     return (
       [...periods].sort((a, b) =>
-        (b.endsOn ?? b.startsOn).localeCompare(a.endsOn ?? a.startsOn),
+        (b.endsOn ?? b.startsOn).localeCompare(a.endsOn ?? a.startsOn)
       )[0] ?? null
     );
   }
@@ -98,15 +95,12 @@ export function RestaurantDetail({
   variant = "page",
   visitContribution,
 }: RestaurantDetailProps) {
-  const availability = getAvailabilityState(
-    restaurant.availabilityPeriods,
-    currentDate,
-  );
+  const availability = getAvailabilityState(restaurant.availabilityPeriods, currentDate);
   const availabilityCopy = AVAILABILITY_COPY[availability];
   const relevantPeriod = findRelevantPeriod(
     restaurant.availabilityPeriods,
     availability,
-    currentDate,
+    currentDate
   );
   const sourceUrl = getSafeHttpsUrl(restaurant.sourceUrl);
   const Title = variant === "page" ? "h1" : "h2";
@@ -119,14 +113,10 @@ export function RestaurantDetail({
         <StampBadge tone="tomato">PIZZA FIELD NOTE</StampBadge>
         <Title>{restaurant.name}</Title>
         {restaurant.alternateName ? (
-          <p className="restaurant-detail__alternate">
-            {restaurant.alternateName}
-          </p>
+          <p className="restaurant-detail__alternate">{restaurant.alternateName}</p>
         ) : null}
         {restaurant.description ? (
-          <p className="restaurant-detail__description">
-            {restaurant.description}
-          </p>
+          <p className="restaurant-detail__description">{restaurant.description}</p>
         ) : null}
       </header>
 
@@ -148,9 +138,7 @@ export function RestaurantDetail({
       <section className="detail-section">
         <span>LOCATION</span>
         <SectionTitle>어디에서 먹나요?</SectionTitle>
-        <p className="detail-address">
-          {restaurant.address ?? restaurant.region}
-        </p>
+        <p className="detail-address">{restaurant.address ?? restaurant.region}</p>
         {sourceUrl ? (
           <a
             className="detail-source-link"
@@ -169,9 +157,7 @@ export function RestaurantDetail({
           <SectionTitle>확인된 인증</SectionTitle>
           <div className="detail-claims">
             {restaurant.certifications.map((certification) => {
-              const certificationSourceUrl = getSafeHttpsUrl(
-                certification.sourceUrl,
-              );
+              const certificationSourceUrl = getSafeHttpsUrl(certification.sourceUrl);
 
               return (
                 <article
@@ -184,11 +170,7 @@ export function RestaurantDetail({
                     <small>No. {certification.certificationNumber}</small>
                   ) : null}
                   {certificationSourceUrl ? (
-                    <a
-                      href={certificationSourceUrl}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
+                    <a href={certificationSourceUrl} rel="noopener noreferrer" target="_blank">
                       인증 근거 ↗
                     </a>
                   ) : null}
@@ -219,11 +201,7 @@ export function RestaurantDetail({
                     {award.division} · {award.placement}
                   </p>
                   {awardSourceUrl ? (
-                    <a
-                      href={awardSourceUrl}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
+                    <a href={awardSourceUrl} rel="noopener noreferrer" target="_blank">
                       수상 근거 ↗
                     </a>
                   ) : null}

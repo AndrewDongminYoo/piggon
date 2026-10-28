@@ -14,13 +14,11 @@ describe("filterAdminRestaurantIndex", () => {
       filterAdminRestaurantIndex(restaurants, {
         query: "마리오네",
         status: "published",
-      }),
+      })
     ).toEqual([{ name: "마리오네 성수", status: "published" }]);
   });
 
   it("keeps every status when the all-status filter is selected", () => {
-    expect(
-      filterAdminRestaurantIndex(restaurants, { query: "", status: "all" }),
-    ).toHaveLength(3);
+    expect(filterAdminRestaurantIndex(restaurants, { query: "", status: "all" })).toHaveLength(3);
   });
 });

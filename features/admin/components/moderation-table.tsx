@@ -42,10 +42,10 @@ function ModerationControl({ row }: { row: ModerationRow }) {
       : row.hidden
         ? restoreReview
         : hideReview;
-  const [state, formAction, isPending] = useActionState<
-    ModerationActionState,
-    FormData
-  >(action, INITIAL_MODERATION_ACTION_STATE);
+  const [state, formAction, isPending] = useActionState<ModerationActionState, FormData>(
+    action,
+    INITIAL_MODERATION_ACTION_STATE
+  );
 
   function confirmHide(event: FormEvent<HTMLFormElement>): void {
     if (
@@ -53,7 +53,7 @@ function ModerationControl({ row }: { row: ModerationRow }) {
       !window.confirm(
         row.contentType === "visit"
           ? "이 방문 인증과 연결된 리뷰를 공개 화면에서 숨길까요? 데이터는 삭제되지 않습니다."
-          : "이 리뷰를 공개 화면에서 숨길까요? 데이터는 삭제되지 않습니다.",
+          : "이 리뷰를 공개 화면에서 숨길까요? 데이터는 삭제되지 않습니다."
       )
     ) {
       event.preventDefault();
@@ -86,11 +86,7 @@ function ModerationControl({ row }: { row: ModerationRow }) {
 
 export function ModerationTable({ rows }: ModerationTableProps) {
   if (rows.length === 0) {
-    return (
-      <p className="admin-empty-state">
-        아직 모더레이션할 방문 인증이나 리뷰가 없습니다.
-      </p>
-    );
+    return <p className="admin-empty-state">아직 모더레이션할 방문 인증이나 리뷰가 없습니다.</p>;
   }
 
   return (

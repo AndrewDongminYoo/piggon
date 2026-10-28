@@ -9,12 +9,7 @@ type VisitCardFrameProps = {
   visit: PublicVisit;
 };
 
-export function VisitCardFrame({
-  children,
-  heading,
-  subheading,
-  visit,
-}: VisitCardFrameProps) {
+export function VisitCardFrame({ children, heading, subheading, visit }: VisitCardFrameProps) {
   return (
     <article className="visit-card">
       <header className="visit-card__header">
@@ -29,17 +24,10 @@ export function VisitCardFrame({
         <div className="visit-card__photo">
           {/* A short-lived private URL cannot be processed safely by the Next image optimizer. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt={`${heading} 방문 인증 사진`}
-            height="720"
-            src={visit.photoUrl}
-            width="960"
-          />
+          <img alt={`${heading} 방문 인증 사진`} height="720" src={visit.photoUrl} width="960" />
         </div>
       ) : visit.evidenceType === "photo" ? (
-        <p className="visit-card__evidence-missing">
-          사진으로 방문을 인증했어요.
-        </p>
+        <p className="visit-card__evidence-missing">사진으로 방문을 인증했어요.</p>
       ) : visit.instagramUrl ? (
         <a
           className="visit-card__instagram"
@@ -50,9 +38,7 @@ export function VisitCardFrame({
           Instagram 방문 인증 보기 ↗
         </a>
       ) : (
-        <p className="visit-card__evidence-missing">
-          인증 링크를 불러오지 못했습니다.
-        </p>
+        <p className="visit-card__evidence-missing">인증 링크를 불러오지 못했습니다.</p>
       )}
 
       {visit.review ? (

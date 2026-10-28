@@ -24,7 +24,7 @@ const FORMAT_BY_MEDIA_TYPE: Record<VisitImageMediaType, string> = {
 // is deliberately tiny so proving the source decodes costs bounded memory.
 export async function decodesAsVisitImage(
   bytes: Uint8Array,
-  expected: VisitImageMediaType,
+  expected: VisitImageMediaType
 ): Promise<boolean> {
   try {
     const image = sharp(Buffer.from(bytes), {

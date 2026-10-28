@@ -7,7 +7,7 @@ import type {
 
 export function getAvailabilityState(
   periods: AvailabilityPeriod[],
-  currentDate: string,
+  currentDate: string
 ): AvailabilityState {
   if (periods.length === 0) {
     return "permanent";
@@ -16,7 +16,7 @@ export function getAvailabilityState(
   if (
     periods.some(
       ({ endsOn, startsOn }) =>
-        startsOn <= currentDate && (endsOn === null || currentDate <= endsOn),
+        startsOn <= currentDate && (endsOn === null || currentDate <= endsOn)
     )
   ) {
     return "current";
@@ -31,7 +31,7 @@ export function getAvailabilityState(
 
 function hasAvpnCertification(restaurant: RestaurantSummary): boolean {
   return restaurant.certifications.some(({ issuer, name }) =>
-    `${issuer} ${name}`.toLowerCase().includes("avpn"),
+    `${issuer} ${name}`.toLowerCase().includes("avpn")
   );
 }
 
@@ -42,34 +42,20 @@ function matchesSearch(restaurant: RestaurantSummary, search: string): boolean {
     return true;
   }
 
-  return [
-    restaurant.name,
-    restaurant.alternateName,
-    restaurant.region,
-    restaurant.address,
-  ]
+  return [restaurant.name, restaurant.alternateName, restaurant.region, restaurant.address]
     .filter((value): value is string => value !== null)
-    .some((value) =>
-      value.toLocaleLowerCase("ko-KR").includes(normalizedSearch),
-    );
+    .some((value) => value.toLocaleLowerCase("ko-KR").includes(normalizedSearch));
 }
 
 export function filterRestaurants<T extends RestaurantSummary>(
   restaurants: T[],
   filter: RestaurantFilter,
-  currentDate: string,
+  currentDate: string
 ): T[] {
   return restaurants.filter((restaurant) => {
-    const availability = getAvailabilityState(
-      restaurant.availabilityPeriods,
-      currentDate,
-    );
+    const availability = getAvailabilityState(restaurant.availabilityPeriods, currentDate);
 
-    if (
-      restaurant.kind === "popup" &&
-      availability === "ended" &&
-      !filter.includeEndedPopups
-    ) {
+    if (restaurant.kind === "popup" && availability === "ended" && !filter.includeEndedPopups) {
       return false;
     }
 
@@ -89,10 +75,7 @@ export function filterRestaurants<T extends RestaurantSummary>(
       return false;
     }
 
-    if (
-      filter.currentAvailabilityOnly &&
-      !["current", "permanent"].includes(availability)
-    ) {
+    if (filter.currentAvailabilityOnly && !["current", "permanent"].includes(availability)) {
       return false;
     }
 

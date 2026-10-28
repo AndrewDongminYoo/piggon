@@ -10,11 +10,7 @@ export function ModerationEvidence({
   restaurantName,
 }: ModerationEvidenceProps) {
   if (!evidenceUrl) {
-    return (
-      <small className="moderation-evidence__unavailable">
-        증거를 불러오지 못했습니다.
-      </small>
-    );
+    return <small className="moderation-evidence__unavailable">증거를 불러오지 못했습니다.</small>;
   }
 
   if (evidenceType === "instagram") {

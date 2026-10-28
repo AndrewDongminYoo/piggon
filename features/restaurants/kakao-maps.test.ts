@@ -54,7 +54,7 @@ describe("loadKakaoMaps", () => {
     await expect(first).resolves.toBe(window.kakao.maps);
     expect(appendedScripts).toBe(1);
     expect(scriptSource).toBe(
-      "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services,clusterer&appkey=key%2Fvalue",
+      "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&libraries=services,clusterer&appkey=key%2Fvalue"
     );
   });
 
@@ -77,9 +77,7 @@ describe("loadKakaoMaps", () => {
       queueMicrotask(() => script.onload?.());
     });
 
-    await expect(loadKakaoMaps("key")).rejects.toThrow(
-      "카카오 지도 SDK를 불러오지 못했습니다.",
-    );
+    await expect(loadKakaoMaps("key")).rejects.toThrow("카카오 지도 SDK를 불러오지 못했습니다.");
     await expect(loadKakaoMaps("key")).resolves.toBe(window.kakao.maps);
     expect(attempt).toBe(2);
   });

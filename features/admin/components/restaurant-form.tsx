@@ -11,11 +11,7 @@ import {
   type FormEvent,
 } from "react";
 
-import {
-  archiveRestaurant,
-  restoreRestaurant,
-  saveRestaurant,
-} from "../restaurant-actions";
+import { archiveRestaurant, restoreRestaurant, saveRestaurant } from "../restaurant-actions";
 import {
   INITIAL_RESTAURANT_ADMIN_STATE,
   type RestaurantAdminActionState,
@@ -66,7 +62,7 @@ function withClientKeys<T>(rows: T[], prefix: string): Array<ClientRow<T>> {
 }
 
 function withoutClientKeys<T extends { clientKey: string }>(
-  rows: T[],
+  rows: T[]
 ): Array<Omit<T, "clientKey">> {
   return rows.map((row) => {
     const value = { ...row };
@@ -113,7 +109,7 @@ function RestaurantStatusControls({ value }: { value: RestaurantFormValue }) {
   async function runStatusAction(
     action: typeof archiveRestaurant,
     previousState: RestaurantAdminActionState,
-    formData: FormData,
+    formData: FormData
   ) {
     const state = await action(previousState, formData);
     if (state.status === "success") {
@@ -124,11 +120,11 @@ function RestaurantStatusControls({ value }: { value: RestaurantFormValue }) {
 
   const [archiveState, archiveAction, isArchiving] = useActionState(
     runStatusAction.bind(null, archiveRestaurant),
-    INITIAL_RESTAURANT_ADMIN_STATE,
+    INITIAL_RESTAURANT_ADMIN_STATE
   );
   const [restoreState, restoreAction, isRestoring] = useActionState(
     runStatusAction.bind(null, restoreRestaurant),
-    INITIAL_RESTAURANT_ADMIN_STATE,
+    INITIAL_RESTAURANT_ADMIN_STATE
   );
 
   if (!value.id) {
@@ -161,7 +157,7 @@ function RestaurantStatusControls({ value }: { value: RestaurantFormValue }) {
           onSubmit={(event) => {
             if (
               !window.confirm(
-                "이 맛집을 보관하고 공개 지도에서 숨길까요? 종료된 팝업은 보관 대신 운영기간으로 표시하는 편이 좋습니다.",
+                "이 맛집을 보관하고 공개 지도에서 숨길까요? 종료된 팝업은 보관 대신 운영기간으로 표시하는 편이 좋습니다."
               )
             ) {
               event.preventDefault();
@@ -180,16 +176,10 @@ function RestaurantStatusControls({ value }: { value: RestaurantFormValue }) {
   );
 }
 
-export function RestaurantForm({
-  appKey,
-  initialValue = EMPTY_VALUE,
-}: RestaurantFormProps) {
+export function RestaurantForm({ appKey, initialValue = EMPTY_VALUE }: RestaurantFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  async function submitRestaurant(
-    previousState: RestaurantAdminActionState,
-    formData: FormData,
-  ) {
+  async function submitRestaurant(previousState: RestaurantAdminActionState, formData: FormData) {
     const nextState = await saveRestaurant(previousState, formData);
     if (nextState.status === "success" && nextState.restaurantId) {
       if (!initialValue.id) {
@@ -203,17 +193,14 @@ export function RestaurantForm({
 
   const [state, action, isPending] = useActionState(
     submitRestaurant,
-    INITIAL_RESTAURANT_ADMIN_STATE,
+    INITIAL_RESTAURANT_ADMIN_STATE
   );
 
   useEffect(() => {
-    formRef.current
-      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
-      ?.focus();
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [state.fieldErrors]);
   const snapshot = state.formValues;
-  const restoredKakaoPlaceId =
-    snapshot?.kakaoPlaceId ?? initialValue.kakaoPlaceId ?? "";
+  const restoredKakaoPlaceId = snapshot?.kakaoPlaceId ?? initialValue.kakaoPlaceId ?? "";
   const restoredSourceUrl = snapshot?.sourceUrl ?? initialValue.sourceUrl ?? "";
   const inferredAutoSourceUrl = `https://place.map.kakao.com/${restoredKakaoPlaceId}`;
   const [details, setDetails] = useState({
@@ -226,9 +213,7 @@ export function RestaurantForm({
   });
   const [source, setSource] = useState({
     autoUrl:
-      restoredKakaoPlaceId && restoredSourceUrl === inferredAutoSourceUrl
-        ? restoredSourceUrl
-        : "",
+      restoredKakaoPlaceId && restoredSourceUrl === inferredAutoSourceUrl ? restoredSourceUrl : "",
     url: restoredSourceUrl,
   });
   const [location, setLocation] = useState({
@@ -240,27 +225,25 @@ export function RestaurantForm({
   });
   const [certifications, setCertifications] = useState(
     withClientKeys(
-      parseSnapshotRows<RestaurantAdminInput["certifications"][number]>(
-        snapshot?.certifications,
-      ) ?? initialValue.certifications,
-      "certification",
-    ),
+      parseSnapshotRows<RestaurantAdminInput["certifications"][number]>(snapshot?.certifications) ??
+        initialValue.certifications,
+      "certification"
+    )
   );
   const [awards, setAwards] = useState(
     withClientKeys(
-      parseSnapshotRows<RestaurantAdminInput["awards"][number]>(
-        snapshot?.awards,
-      ) ?? initialValue.awards,
-      "award",
-    ),
+      parseSnapshotRows<RestaurantAdminInput["awards"][number]>(snapshot?.awards) ??
+        initialValue.awards,
+      "award"
+    )
   );
   const [availabilityPeriods, setAvailabilityPeriods] = useState(
     withClientKeys(
       parseSnapshotRows<RestaurantAdminInput["availabilityPeriods"][number]>(
-        snapshot?.availabilityPeriods,
+        snapshot?.availabilityPeriods
       ) ?? initialValue.availabilityPeriods,
-      "availability",
-    ),
+      "availability"
+    )
   );
 
   const selectedPlace = useMemo<KakaoPlaceSelection | null>(() => {
@@ -297,13 +280,10 @@ export function RestaurantForm({
   }, []);
 
   function confirmPublication(event: FormEvent<HTMLFormElement>): void {
-    const submitter = (event.nativeEvent as SubmitEvent)
-      .submitter as HTMLButtonElement | null;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     if (
       submitter?.value === "publish" &&
-      !window.confirm(
-        "주소·좌표·출처와 속성을 확인했습니다. 이 맛집을 공개할까요?",
-      )
+      !window.confirm("주소·좌표·출처와 속성을 확인했습니다. 이 맛집을 공개할까요?")
     ) {
       event.preventDefault();
     }
@@ -325,11 +305,7 @@ export function RestaurantForm({
           type="hidden"
           value={JSON.stringify(withoutClientKeys(certifications))}
         />
-        <input
-          name="awards"
-          type="hidden"
-          value={JSON.stringify(withoutClientKeys(awards))}
-        />
+        <input name="awards" type="hidden" value={JSON.stringify(withoutClientKeys(awards))} />
         <input
           name="availabilityPeriods"
           type="hidden"
@@ -345,9 +321,7 @@ export function RestaurantForm({
             <label>
               <span>상호명</span>
               <input
-                aria-describedby={
-                  state.fieldErrors?.name ? "restaurant-name-error" : undefined
-                }
+                aria-describedby={state.fieldErrors?.name ? "restaurant-name-error" : undefined}
                 aria-invalid={Boolean(state.fieldErrors?.name)}
                 maxLength={160}
                 name="name"
@@ -360,10 +334,7 @@ export function RestaurantForm({
                 required
                 value={details.name}
               />
-              <FieldError
-                errors={state.fieldErrors?.name}
-                id="restaurant-name-error"
-              />
+              <FieldError errors={state.fieldErrors?.name} id="restaurant-name-error" />
             </label>
             <label>
               <span>다른 이름</span>
@@ -382,9 +353,7 @@ export function RestaurantForm({
             <label>
               <span>슬러그</span>
               <input
-                aria-describedby={
-                  state.fieldErrors?.slug ? "restaurant-slug-error" : undefined
-                }
+                aria-describedby={state.fieldErrors?.slug ? "restaurant-slug-error" : undefined}
                 aria-invalid={Boolean(state.fieldErrors?.slug)}
                 maxLength={160}
                 name="slug"
@@ -399,19 +368,12 @@ export function RestaurantForm({
                 required
                 value={details.slug}
               />
-              <FieldError
-                errors={state.fieldErrors?.slug}
-                id="restaurant-slug-error"
-              />
+              <FieldError errors={state.fieldErrors?.slug} id="restaurant-slug-error" />
             </label>
             <label>
               <span>지역</span>
               <input
-                aria-describedby={
-                  state.fieldErrors?.region
-                    ? "restaurant-region-error"
-                    : undefined
-                }
+                aria-describedby={state.fieldErrors?.region ? "restaurant-region-error" : undefined}
                 aria-invalid={Boolean(state.fieldErrors?.region)}
                 maxLength={160}
                 name="region"
@@ -425,17 +387,12 @@ export function RestaurantForm({
                 required
                 value={details.region}
               />
-              <FieldError
-                errors={state.fieldErrors?.region}
-                id="restaurant-region-error"
-              />
+              <FieldError errors={state.fieldErrors?.region} id="restaurant-region-error" />
             </label>
             <label>
               <span>형태</span>
               <select
-                aria-describedby={
-                  state.fieldErrors?.kind ? "restaurant-kind-error" : undefined
-                }
+                aria-describedby={state.fieldErrors?.kind ? "restaurant-kind-error" : undefined}
                 aria-invalid={Boolean(state.fieldErrors?.kind)}
                 name="kind"
                 onChange={(event) =>
@@ -451,10 +408,7 @@ export function RestaurantForm({
                 <option value="popup">기간 한정 팝업</option>
                 <option value="franchise">프랜차이즈</option>
               </select>
-              <FieldError
-                errors={state.fieldErrors?.kind}
-                id="restaurant-kind-error"
-              />
+              <FieldError errors={state.fieldErrors?.kind} id="restaurant-kind-error" />
             </label>
             <label className="admin-form-grid__wide">
               <span>설명</span>
@@ -479,19 +433,13 @@ export function RestaurantForm({
             <span>02 / PLACE</span>
             <h2>주소와 지도 위치</h2>
           </div>
-          <KakaoPlacePicker
-            appKey={appKey}
-            onChange={handlePlaceChange}
-            value={selectedPlace}
-          />
+          <KakaoPlacePicker appKey={appKey} onChange={handlePlaceChange} value={selectedPlace} />
           <div className="admin-form-grid admin-location-fields">
             <label className="admin-form-grid__wide">
               <span>정확한 주소</span>
               <input
                 aria-describedby={
-                  state.fieldErrors?.address
-                    ? "restaurant-address-error"
-                    : undefined
+                  state.fieldErrors?.address ? "restaurant-address-error" : undefined
                 }
                 aria-invalid={Boolean(state.fieldErrors?.address)}
                 name="address"
@@ -503,10 +451,7 @@ export function RestaurantForm({
                 }
                 value={location.address}
               />
-              <FieldError
-                errors={state.fieldErrors?.address}
-                id="restaurant-address-error"
-              />
+              <FieldError errors={state.fieldErrors?.address} id="restaurant-address-error" />
             </label>
             <label>
               <span>Kakao 장소 ID</span>
@@ -525,9 +470,7 @@ export function RestaurantForm({
               <span>기본 정보 출처 URL</span>
               <input
                 aria-describedby={
-                  state.fieldErrors?.sourceUrl
-                    ? "restaurant-source-url-error"
-                    : undefined
+                  state.fieldErrors?.sourceUrl ? "restaurant-source-url-error" : undefined
                 }
                 aria-invalid={Boolean(state.fieldErrors?.sourceUrl)}
                 name="sourceUrl"
@@ -541,18 +484,13 @@ export function RestaurantForm({
                 type="url"
                 value={source.url}
               />
-              <FieldError
-                errors={state.fieldErrors?.sourceUrl}
-                id="restaurant-source-url-error"
-              />
+              <FieldError errors={state.fieldErrors?.sourceUrl} id="restaurant-source-url-error" />
             </label>
             <label>
               <span>위도</span>
               <input
                 aria-describedby={
-                  state.fieldErrors?.latitude
-                    ? "restaurant-latitude-error"
-                    : undefined
+                  state.fieldErrors?.latitude ? "restaurant-latitude-error" : undefined
                 }
                 aria-invalid={Boolean(state.fieldErrors?.latitude)}
                 inputMode="decimal"
@@ -565,18 +503,13 @@ export function RestaurantForm({
                 }
                 value={location.latitude}
               />
-              <FieldError
-                errors={state.fieldErrors?.latitude}
-                id="restaurant-latitude-error"
-              />
+              <FieldError errors={state.fieldErrors?.latitude} id="restaurant-latitude-error" />
             </label>
             <label>
               <span>경도</span>
               <input
                 aria-describedby={
-                  state.fieldErrors?.longitude
-                    ? "restaurant-longitude-error"
-                    : undefined
+                  state.fieldErrors?.longitude ? "restaurant-longitude-error" : undefined
                 }
                 aria-invalid={Boolean(state.fieldErrors?.longitude)}
                 inputMode="decimal"
@@ -589,10 +522,7 @@ export function RestaurantForm({
                 }
                 value={location.longitude}
               />
-              <FieldError
-                errors={state.fieldErrors?.longitude}
-                id="restaurant-longitude-error"
-              />
+              <FieldError errors={state.fieldErrors?.longitude} id="restaurant-longitude-error" />
             </label>
           </div>
         </section>
@@ -633,10 +563,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setCertifications((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, name: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, name: event.target.value } : row
+                        )
                       )
                     }
                     value={certification.name}
@@ -648,10 +576,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setCertifications((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, issuer: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, issuer: event.target.value } : row
+                        )
                       )
                     }
                     value={certification.issuer}
@@ -668,8 +594,8 @@ export function RestaurantForm({
                                 ...row,
                                 certificationNumber: event.target.value,
                               }
-                            : row,
-                        ),
+                            : row
+                        )
                       )
                     }
                     value={certification.certificationNumber ?? ""}
@@ -681,10 +607,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setCertifications((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, sourceUrl: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, sourceUrl: event.target.value } : row
+                        )
                       )
                     }
                     type="url"
@@ -697,10 +621,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setCertifications((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, validFrom: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, validFrom: event.target.value } : row
+                        )
                       )
                     }
                     type="date"
@@ -713,10 +635,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setCertifications((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, validUntil: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, validUntil: event.target.value } : row
+                        )
                       )
                     }
                     type="date"
@@ -727,7 +647,7 @@ export function RestaurantForm({
                   className="admin-remove-row"
                   onClick={() =>
                     setCertifications((current) =>
-                      current.filter((_, rowIndex) => rowIndex !== index),
+                      current.filter((_, rowIndex) => rowIndex !== index)
                     )
                   }
                   type="button"
@@ -774,10 +694,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAwards((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, competitionName: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, competitionName: event.target.value } : row
+                        )
                       )
                     }
                     value={award.competitionName}
@@ -792,8 +710,8 @@ export function RestaurantForm({
                         current.map((row, rowIndex) =>
                           rowIndex === index
                             ? { ...row, awardYear: Number(event.target.value) }
-                            : row,
-                        ),
+                            : row
+                        )
                       )
                     }
                     value={award.awardYear}
@@ -805,10 +723,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAwards((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, division: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, division: event.target.value } : row
+                        )
                       )
                     }
                     value={award.division}
@@ -820,10 +736,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAwards((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, placement: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, placement: event.target.value } : row
+                        )
                       )
                     }
                     value={award.placement}
@@ -835,10 +749,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAwards((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, sourceUrl: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, sourceUrl: event.target.value } : row
+                        )
                       )
                     }
                     type="url"
@@ -848,9 +760,7 @@ export function RestaurantForm({
                 <button
                   className="admin-remove-row"
                   onClick={() =>
-                    setAwards((current) =>
-                      current.filter((_, rowIndex) => rowIndex !== index),
-                    )
+                    setAwards((current) => current.filter((_, rowIndex) => rowIndex !== index))
                   }
                   type="button"
                 >
@@ -885,8 +795,8 @@ export function RestaurantForm({
             </button>
           </div>
           <p className="admin-form-help">
-            종료된 팝업도 보관하지 않고 공개 상태와 종료일을 유지하면 지도에서
-            역사 기록으로 남길 수 있습니다.
+            종료된 팝업도 보관하지 않고 공개 상태와 종료일을 유지하면 지도에서 역사 기록으로 남길 수
+            있습니다.
           </p>
           <FieldError errors={state.fieldErrors?.availabilityPeriods} />
           <div className="admin-repeat-list">
@@ -898,10 +808,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAvailabilityPeriods((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, startsOn: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, startsOn: event.target.value } : row
+                        )
                       )
                     }
                     type="date"
@@ -914,10 +822,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAvailabilityPeriods((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, endsOn: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, endsOn: event.target.value } : row
+                        )
                       )
                     }
                     type="date"
@@ -931,10 +837,8 @@ export function RestaurantForm({
                     onChange={(event) =>
                       setAvailabilityPeriods((current) =>
                         current.map((row, rowIndex) =>
-                          rowIndex === index
-                            ? { ...row, note: event.target.value }
-                            : row,
-                        ),
+                          rowIndex === index ? { ...row, note: event.target.value } : row
+                        )
                       )
                     }
                     value={period.note ?? ""}
@@ -944,7 +848,7 @@ export function RestaurantForm({
                   className="admin-remove-row"
                   onClick={() =>
                     setAvailabilityPeriods((current) =>
-                      current.filter((_, rowIndex) => rowIndex !== index),
+                      current.filter((_, rowIndex) => rowIndex !== index)
                     )
                   }
                   type="button"
@@ -957,20 +861,10 @@ export function RestaurantForm({
         </section>
 
         <div className="admin-form-actions">
-          <button
-            disabled={isPending}
-            name="intent"
-            type="submit"
-            value="draft"
-          >
+          <button disabled={isPending} name="intent" type="submit" value="draft">
             {isPending ? "저장 중…" : "초안 저장"}
           </button>
-          <button
-            disabled={isPending}
-            name="intent"
-            type="submit"
-            value="publish"
-          >
+          <button disabled={isPending} name="intent" type="submit" value="publish">
             {isPending ? "공개 준비 중…" : "저장하고 공개"}
           </button>
         </div>

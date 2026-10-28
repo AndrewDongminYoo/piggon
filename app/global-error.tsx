@@ -57,8 +57,8 @@ export default function GlobalError({ retry }: GlobalErrorProps) {
             피자 박스를 다시 접고 있어요
           </h1>
           <p style={{ lineHeight: 1.7, margin: "18px 0 28px" }}>
-            화면을 불러오는 도중 문제가 생겼습니다. 오류 상세는 노출하지 않으니
-            안심하고 다시 시도해 주세요.
+            화면을 불러오는 도중 문제가 생겼습니다. 오류 상세는 노출하지 않으니 안심하고 다시 시도해
+            주세요.
           </p>
           <button
             onClick={() => retry()}

@@ -4,22 +4,10 @@ import { getIntroKeyboardAction, shouldPlayIntro } from "./intro-state";
 
 describe("shouldPlayIntro", () => {
   it.each([
-    [
-      { isDesktop: true, prefersReducedMotion: false, hasSeenIntro: false },
-      true,
-    ],
-    [
-      { isDesktop: false, prefersReducedMotion: false, hasSeenIntro: false },
-      false,
-    ],
-    [
-      { isDesktop: true, prefersReducedMotion: true, hasSeenIntro: false },
-      false,
-    ],
-    [
-      { isDesktop: true, prefersReducedMotion: false, hasSeenIntro: true },
-      false,
-    ],
+    [{ isDesktop: true, prefersReducedMotion: false, hasSeenIntro: false }, true],
+    [{ isDesktop: false, prefersReducedMotion: false, hasSeenIntro: false }, false],
+    [{ isDesktop: true, prefersReducedMotion: true, hasSeenIntro: false }, false],
+    [{ isDesktop: true, prefersReducedMotion: false, hasSeenIntro: true }, false],
   ])("returns the expected intro decision", (input, expected) => {
     expect(shouldPlayIntro(input)).toBe(expected);
   });
@@ -33,7 +21,7 @@ describe("getIntroKeyboardAction", () => {
         isLastFocusable: false,
         key: "Escape",
         shiftKey: false,
-      }),
+      })
     ).toBe("close");
   });
 
@@ -49,8 +37,8 @@ describe("getIntroKeyboardAction", () => {
           isLastFocusable,
           key: "Tab",
           shiftKey,
-        }),
+        })
       ).toBe(expected);
-    },
+    }
   );
 });

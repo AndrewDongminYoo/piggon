@@ -60,10 +60,7 @@ type RestaurantRow = Tables["restaurants"]["Row"] & {
   restaurant_awards: Tables["restaurant_awards"]["Row"][];
   restaurant_availability_periods: Tables["restaurant_availability_periods"]["Row"][];
   restaurant_videos: Array<
-    Pick<
-      Tables["restaurant_videos"]["Row"],
-      "context_note" | "start_seconds"
-    > & {
+    Pick<Tables["restaurant_videos"]["Row"], "context_note" | "start_seconds"> & {
       videos: Tables["videos"]["Row"] | null;
     }
   >;
@@ -117,14 +114,14 @@ function mapRestaurant(row: RestaurantRow): RestaurantDetail {
               contextNote: link.context_note,
             },
           ]
-        : [],
+        : []
     ),
   };
 }
 
 export async function listPublishedRestaurants(
   filter: RestaurantFilter = {},
-  currentDate = new Date().toISOString().slice(0, 10),
+  currentDate = new Date().toISOString().slice(0, 10)
 ): Promise<RestaurantDetail[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -140,13 +137,11 @@ export async function listPublishedRestaurants(
   return filterRestaurants(
     (data as unknown as RestaurantRow[]).map(mapRestaurant),
     filter,
-    currentDate,
+    currentDate
   );
 }
 
-export async function getPublishedRestaurantBySlug(
-  slug: string,
-): Promise<RestaurantDetail | null> {
+export async function getPublishedRestaurantBySlug(slug: string): Promise<RestaurantDetail | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("restaurants")

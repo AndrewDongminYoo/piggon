@@ -10,7 +10,7 @@ describe("getCollectionRestaurant", () => {
         name: "테스트 피자",
         region: "서울",
         slug: "test-pizza",
-      }),
+      })
     ).toEqual({
       id: "restaurant-id",
       isAvailable: true,

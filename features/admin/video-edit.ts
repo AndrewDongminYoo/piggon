@@ -5,7 +5,7 @@
 // would leave the selected video and its restaurant links behind untouched.
 export function canReplaceVideoLinks(
   existingVideoId: string | null,
-  editingVideoId: string | null,
+  editingVideoId: string | null
 ): boolean {
   return existingVideoId === editingVideoId;
 }

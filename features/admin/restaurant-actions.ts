@@ -67,12 +67,12 @@ function parseJsonField(formData: FormData, name: string): unknown {
 }
 
 function getFieldErrors(
-  fieldErrors: Record<string, string[] | undefined>,
+  fieldErrors: Record<string, string[] | undefined>
 ): Record<string, string[]> {
   return Object.fromEntries(
     Object.entries(fieldErrors).filter(
-      (entry): entry is [string, string[]] => entry[1] !== undefined,
-    ),
+      (entry): entry is [string, string[]] => entry[1] !== undefined
+    )
   );
 }
 
@@ -124,13 +124,13 @@ function getFormSnapshot(formData: FormData): Record<string, string> {
       "region",
       "slug",
       "sourceUrl",
-    ].map((name) => [name, getText(formData, name)]),
+    ].map((name) => [name, getText(formData, name)])
   );
 }
 
 async function loadRestaurantForPublication(
   admin: AdminClient,
-  restaurantId: string,
+  restaurantId: string
 ): Promise<AdminRestaurantRow | null> {
   const { data, error } = await admin
     .from("restaurants")
@@ -169,7 +169,7 @@ async function loadRestaurantForPublication(
           ends_on,
           note
         )
-      `,
+      `
     )
     .eq("id", restaurantId)
     .maybeSingle();
@@ -217,7 +217,7 @@ function mapRowToPublicationInput(row: AdminRestaurantRow) {
 
 export async function saveRestaurant(
   _previousState: RestaurantAdminActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<RestaurantAdminActionState> {
   const user = await requireAdmin();
   const formValues = getFormSnapshot(formData);
@@ -311,10 +311,7 @@ export async function saveRestaurant(
     };
   }
 
-  refreshRestaurantPages(
-    existing?.slug ?? null,
-    savedRestaurant.restaurant_slug,
-  );
+  refreshRestaurantPages(existing?.slug ?? null, savedRestaurant.restaurant_slug);
   return {
     message:
       parsed.data.intent === "publish"
@@ -329,7 +326,7 @@ export async function saveRestaurant(
 
 export async function publishRestaurant(
   _previousState: RestaurantAdminActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<RestaurantAdminActionState> {
   const user = await requireAdmin();
   const parsedId = restaurantIdSchema.safeParse(getText(formData, "id"));
@@ -371,7 +368,7 @@ export async function publishRestaurant(
 
 async function updateRestaurantStatus(
   formData: FormData,
-  status: "draft" | "archived",
+  status: "draft" | "archived"
 ): Promise<RestaurantAdminActionState> {
   const user = await requireAdmin();
   const parsedId = restaurantIdSchema.safeParse(getText(formData, "id"));
@@ -410,14 +407,14 @@ async function updateRestaurantStatus(
 
 export async function archiveRestaurant(
   _previousState: RestaurantAdminActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<RestaurantAdminActionState> {
   return updateRestaurantStatus(formData, "archived");
 }
 
 export async function restoreRestaurant(
   _previousState: RestaurantAdminActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<RestaurantAdminActionState> {
   return updateRestaurantStatus(formData, "draft");
 }

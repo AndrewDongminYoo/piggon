@@ -6,10 +6,7 @@ type AdminIdentity = {
   email_confirmed_at?: string | null;
 };
 
-export function isAuthorizedGoogleAdmin(
-  user: AdminIdentity,
-  adminGoogleEmail: string,
-): boolean {
+export function isAuthorizedGoogleAdmin(user: AdminIdentity, adminGoogleEmail: string): boolean {
   return (
     user.app_metadata.provider === "google" &&
     Boolean(user.email_confirmed_at) &&

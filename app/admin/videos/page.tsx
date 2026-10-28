@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 
-import {
-  VideoForm,
-  type VideoEditorValue,
-} from "@/features/admin/components/video-form";
+import { VideoForm, type VideoEditorValue } from "@/features/admin/components/video-form";
 import { requireAdmin } from "@/features/admin/require-admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -38,7 +35,7 @@ export default async function AdminVideosPage() {
             start_seconds,
             context_note
           )
-        `,
+        `
       )
       .order("updated_at", { ascending: false }),
   ]);
@@ -69,10 +66,7 @@ export default async function AdminVideosPage() {
         <div>
           <span>VIDEO RELATION INDEX</span>
           <h1>영상 관리</h1>
-          <p>
-            YouTube 영상 하나를 여러 맛집에 연결하고, 각 맛집의 시작 시점을 따로
-            기록합니다.
-          </p>
+          <p>YouTube 영상 하나를 여러 맛집에 연결하고, 각 맛집의 시작 시점을 따로 기록합니다.</p>
         </div>
         <strong>{videos.length} VIDEOS</strong>
       </header>

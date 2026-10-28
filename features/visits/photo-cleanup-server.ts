@@ -19,10 +19,7 @@ function createCleanupDriver(): VisitPhotoCleanupDriver {
 
   return {
     async clear(path) {
-      const { error } = await admin
-        .from("visit_photo_cleanup_jobs")
-        .delete()
-        .eq("path", path);
+      const { error } = await admin.from("visit_photo_cleanup_jobs").delete().eq("path", path);
       return !error;
     },
     async list(userId, limit) {
@@ -35,16 +32,13 @@ function createCleanupDriver(): VisitPhotoCleanupDriver {
       return error ? [] : data.map(({ path }) => path);
     },
     async listAbandoned(userId, exceptPath, limit) {
-      const { data, error } = await admin.rpc(
-        "list_reclaimable_visit_evidence",
-        {
-          // No object is named "", so an empty exemption exempts nothing.
-          p_except_path: exceptPath ?? "",
-          p_limit: limit,
-          p_older_than_seconds: RECLAIM_AFTER_SECONDS,
-          p_user_id: userId,
-        },
-      );
+      const { data, error } = await admin.rpc("list_reclaimable_visit_evidence", {
+        // No object is named "", so an empty exemption exempts nothing.
+        p_except_path: exceptPath ?? "",
+        p_limit: limit,
+        p_older_than_seconds: RECLAIM_AFTER_SECONDS,
+        p_user_id: userId,
+      });
       return error || !data ? [] : data;
     },
     async queue({ lastError, path, userId }) {
@@ -54,7 +48,7 @@ function createCleanupDriver(): VisitPhotoCleanupDriver {
           path,
           user_id: userId,
         },
-        { onConflict: "path" },
+        { onConflict: "path" }
       );
       if (error) {
         console.error("Unable to queue visit photo cleanup", {
@@ -65,30 +59,23 @@ function createCleanupDriver(): VisitPhotoCleanupDriver {
       return !error;
     },
     async remove(path) {
-      const { error } = await admin.storage
-        .from(VISIT_EVIDENCE_BUCKET)
-        .remove([path]);
+      const { error } = await admin.storage.from(VISIT_EVIDENCE_BUCKET).remove([path]);
       return error?.message ?? null;
     },
   };
 }
 
-export async function cleanupStoredVisitPhoto(
-  path: string,
-  userId: string,
-): Promise<boolean> {
+export async function cleanupStoredVisitPhoto(path: string, userId: string): Promise<boolean> {
   return removeOrQueueVisitPhoto(createCleanupDriver(), path, userId);
 }
 
-export async function retryStoredVisitPhotoCleanup(
-  userId: string,
-): Promise<void> {
+export async function retryStoredVisitPhotoCleanup(userId: string): Promise<void> {
   await retryVisitPhotoCleanup(createCleanupDriver(), userId);
 }
 
 export async function reclaimStoredAbandonedVisitPhotos(
   userId: string,
-  exceptPath: string | null,
+  exceptPath: string | null
 ): Promise<void> {
   await reclaimAbandonedVisitPhotos(createCleanupDriver(), userId, exceptPath);
 }

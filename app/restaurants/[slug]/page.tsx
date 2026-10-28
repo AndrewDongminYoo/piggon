@@ -35,15 +35,12 @@ export async function generateMetadata({
 
   return {
     description:
-      restaurant.description ??
-      `${restaurant.name}의 위치와 확인된 피자 정보를 살펴보세요.`,
+      restaurant.description ?? `${restaurant.name}의 위치와 확인된 피자 정보를 살펴보세요.`,
     title: restaurant.name,
   };
 }
 
-export default async function RestaurantPage({
-  params,
-}: PageProps<"/restaurants/[slug]">) {
+export default async function RestaurantPage({ params }: PageProps<"/restaurants/[slug]">) {
   const { slug } = await params;
   const restaurant = await getRestaurant(slug);
 

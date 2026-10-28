@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  getIntroKeyboardAction,
-  INTRO_STORAGE_KEY,
-  shouldPlayIntro,
-} from "@/lib/intro-state";
+import { getIntroKeyboardAction, INTRO_STORAGE_KEY, shouldPlayIntro } from "@/lib/intro-state";
 
 type PizzaBoxIntroProps = {
   replayToken: number;
@@ -100,8 +90,8 @@ export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
   function handleDialogKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
     const focusableElements = Array.from(
       dialogRef.current?.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      ) ?? [],
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) ?? []
     );
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements.at(-1);
@@ -139,12 +129,7 @@ export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
       ref={dialogRef}
       role="dialog"
     >
-      <button
-        className="pizza-intro__skip"
-        onClick={finishIntro}
-        ref={skipButtonRef}
-        type="button"
-      >
+      <button className="pizza-intro__skip" onClick={finishIntro} ref={skipButtonRef} type="button">
         건너뛰기
       </button>
       <div aria-hidden="true" className="pizza-box-stage">
@@ -164,9 +149,7 @@ export function PizzaBoxIntro({ replayToken }: PizzaBoxIntroProps) {
           <small>UNOFFICIAL FAN PROJECT</small>
         </div>
       </div>
-      <p className="pizza-intro__caption">
-        박스를 열면, 피자 원정이 시작됩니다.
-      </p>
+      <p className="pizza-intro__caption">박스를 열면, 피자 원정이 시작됩니다.</p>
     </div>
   );
 }

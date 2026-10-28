@@ -19,9 +19,7 @@ export async function GET(request: Request) {
   });
 
   if (error || !data.url) {
-    return NextResponse.redirect(
-      new URL("/auth/auth-code-error", requestUrl.origin),
-    );
+    return NextResponse.redirect(new URL("/auth/auth-code-error", requestUrl.origin));
   }
 
   return NextResponse.redirect(data.url);

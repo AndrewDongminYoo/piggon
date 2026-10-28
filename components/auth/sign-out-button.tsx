@@ -23,9 +23,7 @@ export function SignOutButton() {
     // Navigating away would say the session ended while it is still live, which
     // is the dangerous direction to be wrong in on a shared device.
     if (failed) {
-      setErrorMessage(
-        "로그아웃하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.",
-      );
+      setErrorMessage("로그아웃하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.");
       setIsPending(false);
       return;
     }
@@ -45,10 +43,7 @@ export function SignOutButton() {
         {isPending ? "로그아웃 중…" : "로그아웃"}
       </button>
       {errorMessage ? (
-        <p
-          className="visit-action-message visit-action-message--error"
-          role="alert"
-        >
+        <p className="visit-action-message visit-action-message--error" role="alert">
           {errorMessage}
         </p>
       ) : null}

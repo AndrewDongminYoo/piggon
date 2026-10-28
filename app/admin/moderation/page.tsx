@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 
-import {
-  ModerationTable,
-  type ModerationRow,
-} from "@/features/admin/components/moderation-table";
+import { ModerationTable, type ModerationRow } from "@/features/admin/components/moderation-table";
 import { requireAdmin } from "@/features/admin/require-admin";
 import { parseInstagramUrl } from "@/features/restaurants/validators";
 import { createVisitPhotoUrlMap } from "@/features/visits/queries";
@@ -16,10 +13,7 @@ export const metadata: Metadata = {
 
 type Tables = Database["public"]["Tables"];
 
-type ReviewRow = Pick<
-  Tables["reviews"]["Row"],
-  "body" | "created_at" | "hidden" | "id"
->;
+type ReviewRow = Pick<Tables["reviews"]["Row"], "body" | "created_at" | "hidden" | "id">;
 
 type VisitModerationRow = Pick<
   Tables["visits"]["Row"],
@@ -80,7 +74,7 @@ export default async function AdminModerationPage() {
           hidden,
           created_at
         )
-      `,
+      `
     )
     .order("created_at", { ascending: false });
 
@@ -92,10 +86,7 @@ export default async function AdminModerationPage() {
   const userIds = [...new Set(visits.map((visit) => visit.user_id))];
   const profileResult =
     userIds.length > 0
-      ? await admin
-          .from("profiles")
-          .select("id, display_name")
-          .in("id", userIds)
+      ? await admin.from("profiles").select("id, display_name").in("id", userIds)
       : { data: [], error: null };
   if (profileResult.error) {
     throw new Error("Unable to load moderation profile names", {
@@ -105,7 +96,7 @@ export default async function AdminModerationPage() {
 
   const photoUrls = await createVisitPhotoUrlMap(visits);
   const profileNames = new Map(
-    profileResult.data.map((profile) => [profile.id, profile.display_name]),
+    profileResult.data.map((profile) => [profile.id, profile.display_name])
   );
   const rows = visits
     .flatMap((visit) => {
@@ -137,10 +128,7 @@ export default async function AdminModerationPage() {
           createdAtIso: visit.created_at,
           hidden: visit.hidden,
           id: visit.id,
-          preview:
-            visit.evidence_type === "photo"
-              ? "업로드 사진"
-              : "Instagram 게시물",
+          preview: visit.evidence_type === "photo" ? "업로드 사진" : "Instagram 게시물",
         },
         ...reviews.map((review) => ({
           ...shared,
@@ -164,10 +152,7 @@ export default async function AdminModerationPage() {
         <div>
           <span>COMMUNITY SIGNALS</span>
           <h1>커뮤니티 관리</h1>
-          <p>
-            방문 인증과 리뷰를 삭제하지 않고 공개 화면에서 숨기거나 다시
-            복원합니다.
-          </p>
+          <p>방문 인증과 리뷰를 삭제하지 않고 공개 화면에서 숨기거나 다시 복원합니다.</p>
         </div>
         <strong>{rows.length} RECORDS</strong>
       </header>

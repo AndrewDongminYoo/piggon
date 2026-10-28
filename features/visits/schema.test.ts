@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { profileInputSchema, visitInputSchema } from "./schema";
-import {
-  createVisitPhotoPath,
-  detectImageMediaType,
-  isOwnedVisitPhotoPath,
-} from "./storage";
+import { createVisitPhotoPath, detectImageMediaType, isOwnedVisitPhotoPath } from "./storage";
 
 const restaurantId = "11111111-1111-4111-8111-111111111111";
 
@@ -20,7 +16,7 @@ describe("visitInputSchema", () => {
         restaurantId,
         reviewBody: "다시 먹고 싶은 피자",
         visitedOn: "2026-08-10",
-      }).evidenceType,
+      }).evidenceType
     ).toBe("instagram");
   });
 
@@ -34,7 +30,7 @@ describe("visitInputSchema", () => {
         restaurantId,
         reviewBody: "",
         visitedOn: "2026-08-10",
-      }),
+      })
     ).toThrow();
   });
 
@@ -48,7 +44,7 @@ describe("visitInputSchema", () => {
         restaurantId,
         reviewBody: null,
         visitedOn: "2026-08-10",
-      }),
+      })
     ).toThrow();
   });
 });
@@ -63,18 +59,14 @@ describe("profileInputSchema", () => {
 
 describe("visit photo storage", () => {
   it("builds an owner-scoped photo path", () => {
-    expect(
-      createVisitPhotoPath("user-id", "restaurant-id", "webp", "file-id"),
-    ).toBe("user-id/restaurant-id/file-id.webp");
+    expect(createVisitPhotoPath("user-id", "restaurant-id", "webp", "file-id")).toBe(
+      "user-id/restaurant-id/file-id.webp"
+    );
   });
 
   it("rejects a path outside the owner and restaurant folders", () => {
     expect(
-      isOwnedVisitPhotoPath(
-        "other-user/restaurant-id/file-id.webp",
-        "user-id",
-        "restaurant-id",
-      ),
+      isOwnedVisitPhotoPath("other-user/restaurant-id/file-id.webp", "user-id", "restaurant-id")
     ).toBe(false);
   });
 
@@ -106,8 +98,7 @@ describe("visit photo storage", () => {
       0x60,
       0x82,
     ]);
-  const jpeg = (body: number[] = []) =>
-    Uint8Array.from([0xff, 0xd8, 0xff, ...body, 0xff, 0xd9]);
+  const jpeg = (body: number[] = []) => Uint8Array.from([0xff, 0xd8, 0xff, ...body, 0xff, 0xd9]);
   const webp = (body: number[] = []) =>
     Uint8Array.from([
       0x52,
@@ -135,22 +126,16 @@ describe("visit photo storage", () => {
   // prefix check while being unrenderable, and the write policy trusts whatever
   // this returns.
   it("rejects a valid header followed by arbitrary bytes", () => {
+    expect(detectImageMediaType(Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 3]))).toBeNull();
     expect(
-      detectImageMediaType(Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 3])),
+      detectImageMediaType(
+        Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3])
+      )
     ).toBeNull();
     expect(
       detectImageMediaType(
-        Uint8Array.from([
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3,
-        ]),
-      ),
-    ).toBeNull();
-    expect(
-      detectImageMediaType(
-        Uint8Array.from([
-          0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
-        ]),
-      ),
+        Uint8Array.from([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])
+      )
     ).toBeNull();
   });
 
@@ -158,9 +143,7 @@ describe("visit photo storage", () => {
   // legitimate photos — a worse failure than the forgery being prevented.
   it("accepts a JPEG padded with trailing zeros", () => {
     expect(
-      detectImageMediaType(
-        Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 0xff, 0xd9, 0, 0, 0]),
-      ),
+      detectImageMediaType(Uint8Array.from([0xff, 0xd8, 0xff, 1, 2, 0xff, 0xd9, 0, 0, 0]))
     ).toBe("image/jpeg");
   });
 
@@ -172,8 +155,6 @@ describe("visit photo storage", () => {
   });
 
   it("rejects content without a supported signature", () => {
-    expect(
-      detectImageMediaType(Uint8Array.from([0x47, 0x49, 0x46])),
-    ).toBeNull();
+    expect(detectImageMediaType(Uint8Array.from([0x47, 0x49, 0x46]))).toBeNull();
   });
 });

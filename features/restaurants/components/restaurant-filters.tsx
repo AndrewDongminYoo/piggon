@@ -16,12 +16,9 @@ const FILTER_OPTIONS: Array<{
   { key: "includeEndedPopups", label: "종료된 팝업 포함" },
 ];
 
-export function RestaurantFilters({
-  filter,
-  onChange,
-}: RestaurantFiltersProps) {
+export function RestaurantFilters({ filter, onChange }: RestaurantFiltersProps) {
   const hasActiveFilter = Boolean(
-    filter.search || FILTER_OPTIONS.some(({ key }) => Boolean(filter[key])),
+    filter.search || FILTER_OPTIONS.some(({ key }) => Boolean(filter[key]))
   );
 
   return (
@@ -31,9 +28,7 @@ export function RestaurantFilters({
         <span className="atlas-search__field">
           <span aria-hidden="true">⌕</span>
           <input
-            onChange={(event) =>
-              onChange({ ...filter, search: event.target.value })
-            }
+            onChange={(event) => onChange({ ...filter, search: event.target.value })}
             placeholder="이름, 지역, 주소로 검색"
             type="search"
             value={filter.search ?? ""}
@@ -45,9 +40,7 @@ export function RestaurantFilters({
           <label className="filter-stamp" key={option.key}>
             <input
               checked={Boolean(filter[option.key])}
-              onChange={(event) =>
-                onChange({ ...filter, [option.key]: event.target.checked })
-              }
+              onChange={(event) => onChange({ ...filter, [option.key]: event.target.checked })}
               type="checkbox"
             />
             <span>{option.label}</span>

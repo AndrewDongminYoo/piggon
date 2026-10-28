@@ -32,10 +32,7 @@ function getAllowedThumbnailUrl(value: string | null): string | null {
 
 export function VideoCard({ video }: VideoCardProps) {
   const thumbnailUrl = getAllowedThumbnailUrl(video.thumbnailUrl);
-  const timestamp =
-    video.startSeconds === null
-      ? null
-      : formatVideoTimestamp(video.startSeconds);
+  const timestamp = video.startSeconds === null ? null : formatVideoTimestamp(video.startSeconds);
   const title = video.title ?? "피자꼰대 영상";
 
   return (
@@ -47,12 +44,7 @@ export function VideoCard({ video }: VideoCardProps) {
     >
       <span className="video-card__media">
         {thumbnailUrl ? (
-          <Image
-            alt={`${title} 썸네일`}
-            height={270}
-            src={thumbnailUrl}
-            width={480}
-          />
+          <Image alt={`${title} 썸네일`} height={270} src={thumbnailUrl} width={480} />
         ) : (
           <span className="video-card__placeholder" aria-hidden="true">
             ▶
@@ -60,9 +52,7 @@ export function VideoCard({ video }: VideoCardProps) {
         )}
       </span>
       <span className="video-card__body">
-        <span className="video-card__eyebrow">
-          YOUTUBE {timestamp ? `· ${timestamp}부터` : ""}
-        </span>
+        <span className="video-card__eyebrow">YOUTUBE {timestamp ? `· ${timestamp}부터` : ""}</span>
         <strong>{title}</strong>
         {video.contextNote ? <small>{video.contextNote}</small> : null}
         <span className="video-card__cta">영상에서 확인하기 ↗</span>

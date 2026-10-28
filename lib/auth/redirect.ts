@@ -1,11 +1,7 @@
 const LOCAL_ORIGIN = "https://piggon.local";
 
 export function getSafeNextPath(value: string | null): string {
-  if (
-    !value?.startsWith("/") ||
-    value.startsWith("//") ||
-    value.includes("\\")
-  ) {
+  if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
     return "/";
   }
 

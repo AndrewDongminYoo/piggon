@@ -46,7 +46,7 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   async function submitProfile(
     previousState: VisitActionState,
-    formData: FormData,
+    formData: FormData
   ): Promise<VisitActionState> {
     const state = await saveDisplayName(previousState, formData);
     if (state.status === "success") {
@@ -55,15 +55,10 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
     return state;
   }
 
-  const [state, action, isPending] = useActionState(
-    submitProfile,
-    INITIAL_VISIT_ACTION_STATE,
-  );
+  const [state, action, isPending] = useActionState(submitProfile, INITIAL_VISIT_ACTION_STATE);
 
   useEffect(() => {
-    formRef.current
-      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
-      ?.focus();
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [state.fieldErrors]);
 
   return (
@@ -73,9 +68,7 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
       <div className="profile-form__row">
         <input
           aria-describedby={
-            state.fieldErrors?.displayName
-              ? "profile-display-name-error"
-              : undefined
+            state.fieldErrors?.displayName ? "profile-display-name-error" : undefined
           }
           aria-invalid={Boolean(state.fieldErrors?.displayName)}
           defaultValue={displayName}
@@ -90,10 +83,7 @@ export function ProfileForm({ displayName = "" }: { displayName?: string }) {
           {isPending ? "저장 중…" : "이름 저장"}
         </button>
       </div>
-      <FieldError
-        errors={state.fieldErrors?.displayName}
-        id="profile-display-name-error"
-      />
+      <FieldError errors={state.fieldErrors?.displayName} id="profile-display-name-error" />
       <ActionMessage state={state} />
     </form>
   );
@@ -106,10 +96,7 @@ function ReviewRetryForm({
   review: { body: string; rating: number };
   visitId: string;
 }) {
-  const [state, action, isPending] = useActionState(
-    upsertReview,
-    INITIAL_VISIT_ACTION_STATE,
-  );
+  const [state, action, isPending] = useActionState(upsertReview, INITIAL_VISIT_ACTION_STATE);
 
   return (
     <form action={action} className="review-retry-form">
@@ -131,21 +118,16 @@ type VisitFormProps = {
   userId: string;
 };
 
-export function VisitForm({
-  currentDate,
-  existingVisit,
-  restaurantId,
-  userId,
-}: VisitFormProps) {
+export function VisitForm({ currentDate, existingVisit, restaurantId, userId }: VisitFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [evidenceType, setEvidenceType] = useState<"photo" | "instagram">(
-    existingVisit?.evidenceType ?? "photo",
+    existingVisit?.evidenceType ?? "photo"
   );
 
   async function submitVisit(
     previousState: VisitActionState,
-    submittedFormData: FormData,
+    submittedFormData: FormData
   ): Promise<VisitActionState> {
     const formData = new FormData();
     for (const [key, value] of submittedFormData.entries()) {
@@ -159,11 +141,7 @@ export function VisitForm({
     let uploadedPath: string | null = null;
 
     try {
-      if (
-        submittedEvidenceType === "photo" &&
-        photo instanceof File &&
-        photo.size > 0
-      ) {
+      if (submittedEvidenceType === "photo" && photo instanceof File && photo.size > 0) {
         if (photo.size > VISIT_IMAGE_MAX_BYTES) {
           return {
             fieldErrors: { photo: ["사진은 8 MiB 이하여야 합니다."] },
@@ -187,17 +165,15 @@ export function VisitForm({
         const photoPath = createVisitPhotoPath(
           userId,
           restaurantId,
-          extensionForMediaType(mediaType),
+          extensionForMediaType(mediaType)
         );
         uploadedPath = photoPath;
         const supabase = createClient();
         const uploadPhoto = () =>
-          supabase.storage
-            .from(VISIT_EVIDENCE_BUCKET)
-            .upload(photoPath, photo, {
-              contentType: mediaType,
-              upsert: false,
-            });
+          supabase.storage.from(VISIT_EVIDENCE_BUCKET).upload(photoPath, photo, {
+            contentType: mediaType,
+            upsert: false,
+          });
 
         let { error } = await uploadPhoto();
         if (error) {
@@ -211,8 +187,7 @@ export function VisitForm({
 
         if (error) {
           return {
-            message:
-              "사진을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            message: "사진을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.",
             status: "error",
           };
         }
@@ -235,9 +210,7 @@ export function VisitForm({
       if (uploadedPath) {
         // Already on the failure path; a failed discard must not replace the
         // user-facing message with a crash.
-        await discardUploadedVisitPhoto(restaurantId, uploadedPath).catch(
-          () => undefined,
-        );
+        await discardUploadedVisitPhoto(restaurantId, uploadedPath).catch(() => undefined);
       }
 
       return {
@@ -247,15 +220,10 @@ export function VisitForm({
     }
   }
 
-  const [state, action, isPending] = useActionState(
-    submitVisit,
-    INITIAL_VISIT_ACTION_STATE,
-  );
+  const [state, action, isPending] = useActionState(submitVisit, INITIAL_VISIT_ACTION_STATE);
 
   useEffect(() => {
-    formRef.current
-      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
-      ?.focus();
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [state.fieldErrors]);
 
   return (
@@ -264,11 +232,7 @@ export function VisitForm({
         <input name="restaurantId" type="hidden" value={restaurantId} />
         {/* Version this form was rendered with; the write refuses to land if the
             visit has moved since, so a stale tab cannot revert another's edit. */}
-        <input
-          name="visitVersion"
-          type="hidden"
-          value={existingVisit?.updatedAt ?? ""}
-        />
+        <input name="visitVersion" type="hidden" value={existingVisit?.updatedAt ?? ""} />
 
         <fieldset>
           <legend>방문 인증 방식</legend>
@@ -299,9 +263,7 @@ export function VisitForm({
         <label className="visit-form__field">
           <span>방문 날짜</span>
           <input
-            aria-describedby={
-              state.fieldErrors?.visitedOn ? "visit-date-error" : undefined
-            }
+            aria-describedby={state.fieldErrors?.visitedOn ? "visit-date-error" : undefined}
             aria-invalid={Boolean(state.fieldErrors?.visitedOn)}
             defaultValue={existingVisit?.visitedOn ?? currentDate}
             max={currentDate}
@@ -309,17 +271,12 @@ export function VisitForm({
             required
             type="date"
           />
-          <FieldError
-            errors={state.fieldErrors?.visitedOn}
-            id="visit-date-error"
-          />
+          <FieldError errors={state.fieldErrors?.visitedOn} id="visit-date-error" />
         </label>
 
         {evidenceType === "photo" ? (
           <label className="visit-form__field">
-            <span>
-              방문 사진 {existingVisit?.photoPath ? "(바꿀 때만 선택)" : ""}
-            </span>
+            <span>방문 사진 {existingVisit?.photoPath ? "(바꿀 때만 선택)" : ""}</span>
             <input
               accept="image/jpeg,image/png,image/webp"
               aria-describedby={
@@ -327,9 +284,7 @@ export function VisitForm({
                   ? "visit-photo-error"
                   : undefined
               }
-              aria-invalid={Boolean(
-                state.fieldErrors?.photo ?? state.fieldErrors?.photoPath,
-              )}
+              aria-invalid={Boolean(state.fieldErrors?.photo ?? state.fieldErrors?.photoPath)}
               name="photo"
               required={!existingVisit?.photoPath}
               type="file"
@@ -345,9 +300,7 @@ export function VisitForm({
             <span>공개 Instagram 게시물 또는 릴</span>
             <input
               aria-describedby={
-                state.fieldErrors?.instagramUrl
-                  ? "visit-instagram-url-error"
-                  : undefined
+                state.fieldErrors?.instagramUrl ? "visit-instagram-url-error" : undefined
               }
               aria-invalid={Boolean(state.fieldErrors?.instagramUrl)}
               defaultValue={existingVisit?.instagramUrl ?? ""}
@@ -356,10 +309,7 @@ export function VisitForm({
               required
               type="url"
             />
-            <FieldError
-              errors={state.fieldErrors?.instagramUrl}
-              id="visit-instagram-url-error"
-            />
+            <FieldError errors={state.fieldErrors?.instagramUrl} id="visit-instagram-url-error" />
           </label>
         )}
 
@@ -368,9 +318,7 @@ export function VisitForm({
           <label>
             <span>별점</span>
             <select
-              aria-describedby={
-                state.fieldErrors?.rating ? "visit-rating-error" : undefined
-              }
+              aria-describedby={state.fieldErrors?.rating ? "visit-rating-error" : undefined}
               aria-invalid={Boolean(state.fieldErrors?.rating)}
               defaultValue={existingVisit?.review?.rating ?? ""}
               name="rating"
@@ -382,18 +330,13 @@ export function VisitForm({
               <option value="2">2 — 아쉬워요</option>
               <option value="1">1 — 내 취향은 아니에요</option>
             </select>
-            <FieldError
-              errors={state.fieldErrors?.rating}
-              id="visit-rating-error"
-            />
+            <FieldError errors={state.fieldErrors?.rating} id="visit-rating-error" />
           </label>
           <label>
             <span>리뷰</span>
             <textarea
               aria-describedby={
-                state.fieldErrors?.reviewBody
-                  ? "visit-review-body-error"
-                  : undefined
+                state.fieldErrors?.reviewBody ? "visit-review-body-error" : undefined
               }
               aria-invalid={Boolean(state.fieldErrors?.reviewBody)}
               defaultValue={existingVisit?.review?.body ?? ""}
@@ -402,19 +345,12 @@ export function VisitForm({
               placeholder="어떤 피자였는지 다른 팬에게 알려주세요."
               rows={4}
             />
-            <FieldError
-              errors={state.fieldErrors?.reviewBody}
-              id="visit-review-body-error"
-            />
+            <FieldError errors={state.fieldErrors?.reviewBody} id="visit-review-body-error" />
           </label>
         </fieldset>
 
         <button className="visit-submit" disabled={isPending} type="submit">
-          {isPending
-            ? "인증 저장 중…"
-            : existingVisit
-              ? "방문 인증 업데이트"
-              : "먹어봤어요 인증"}
+          {isPending ? "인증 저장 중…" : existingVisit ? "방문 인증 업데이트" : "먹어봤어요 인증"}
         </button>
         <ActionMessage state={state} />
       </form>

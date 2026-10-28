@@ -7,9 +7,7 @@ vi.mock("./owner-visit-controls", () => ({
   OwnerVisitControls: () => <div>소유자 컨트롤</div>,
 }));
 vi.mock("./visit-card-frame", () => ({
-  VisitCardFrame: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  VisitCardFrame: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 import { VisitCard } from "./visit-card";
@@ -24,9 +22,7 @@ const publicVisit: PublicVisit = {
   visitedOn: "2026-08-10",
 };
 
-function createOwnerVisit(
-  overrides: Partial<UserCollectionItem> = {},
-): UserCollectionItem {
+function createOwnerVisit(overrides: Partial<UserCollectionItem> = {}): UserCollectionItem {
   return {
     evidenceType: "instagram",
     hidden: false,
@@ -52,7 +48,7 @@ function createOwnerVisit(
 describe("VisitCard moderation notice", () => {
   it("says nothing when the content is visible", () => {
     const markup = renderToStaticMarkup(
-      <VisitCard ownerVisit={createOwnerVisit()} visit={publicVisit} />,
+      <VisitCard ownerVisit={createOwnerVisit()} visit={publicVisit} />
     );
 
     expect(markup).not.toContain("관리자가");
@@ -60,24 +56,16 @@ describe("VisitCard moderation notice", () => {
 
   it("tells the owner a hidden visit stays hidden when recreated", () => {
     const markup = renderToStaticMarkup(
-      <VisitCard
-        ownerVisit={createOwnerVisit({ hidden: true })}
-        visit={publicVisit}
-      />,
+      <VisitCard ownerVisit={createOwnerVisit({ hidden: true })} visit={publicVisit} />
     );
 
-    expect(markup).toContain(
-      "관리자가 이 방문 인증을 공개 화면에서 숨겼습니다",
-    );
+    expect(markup).toContain("관리자가 이 방문 인증을 공개 화면에서 숨겼습니다");
     expect(markup).toContain("다시 등록해도 숨김 상태가 유지됩니다");
   });
 
   it("tells the owner a hidden review stays hidden when rewritten", () => {
     const markup = renderToStaticMarkup(
-      <VisitCard
-        ownerVisit={createOwnerVisit({ reviewHidden: true })}
-        visit={publicVisit}
-      />,
+      <VisitCard ownerVisit={createOwnerVisit({ reviewHidden: true })} visit={publicVisit} />
     );
 
     expect(markup).toContain("관리자가 이 리뷰를 공개 화면에서 숨겼습니다");

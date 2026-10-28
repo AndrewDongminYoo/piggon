@@ -36,17 +36,15 @@ describe("videoAdminSchema", () => {
             contextNote: "오르노",
           },
         ],
-      }).links,
+      }).links
     ).toHaveLength(2);
   });
 
   it("canonicalizes supported YouTube URLs", () => {
-    expect(canonicalizeYouTubeUrl("https://youtu.be/2lozYHXjAzY?t=30")).toEqual(
-      {
-        canonicalUrl: "https://www.youtube.com/watch?v=2lozYHXjAzY",
-        videoId: "2lozYHXjAzY",
-      },
-    );
+    expect(canonicalizeYouTubeUrl("https://youtu.be/2lozYHXjAzY?t=30")).toEqual({
+      canonicalUrl: "https://www.youtube.com/watch?v=2lozYHXjAzY",
+      videoId: "2lozYHXjAzY",
+    });
   });
 
   it("rejects arbitrary hosts and duplicate restaurant links", () => {
@@ -55,7 +53,7 @@ describe("videoAdminSchema", () => {
         ...baseVideo,
         links: [baseVideo.links[0], baseVideo.links[0]],
         youtubeUrl: "https://example.com/watch?v=2lozYHXjAzY",
-      }),
+      })
     ).toThrow();
   });
 
@@ -64,14 +62,14 @@ describe("videoAdminSchema", () => {
       videoAdminSchema.parse({
         ...baseVideo,
         thumbnailUrl: "https://images.example.com/vi/2lozYHXjAzY/photo.jpg",
-      }),
+      })
     ).toThrow();
 
     expect(() =>
       videoAdminSchema.parse({
         ...baseVideo,
         thumbnailUrl: "https://i.ytimg.com/vi/AAAAAAAAAAA/hqdefault.jpg",
-      }),
+      })
     ).toThrow();
   });
 });

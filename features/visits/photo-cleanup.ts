@@ -3,23 +3,15 @@ const CLEANUP_RETRY_LIMIT = 5;
 export type VisitPhotoCleanupDriver = {
   clear: (path: string) => Promise<boolean>;
   list: (userId: string, limit: number) => Promise<string[]>;
-  listAbandoned: (
-    userId: string,
-    exceptPath: string | null,
-    limit: number,
-  ) => Promise<string[]>;
-  queue: (job: {
-    lastError: string;
-    path: string;
-    userId: string;
-  }) => Promise<boolean>;
+  listAbandoned: (userId: string, exceptPath: string | null, limit: number) => Promise<string[]>;
+  queue: (job: { lastError: string; path: string; userId: string }) => Promise<boolean>;
   remove: (path: string) => Promise<string | null>;
 };
 
 export async function removeOrQueueVisitPhoto(
   driver: VisitPhotoCleanupDriver,
   path: string,
-  userId: string,
+  userId: string
 ): Promise<boolean> {
   let removeError: string | null;
   try {
@@ -52,7 +44,7 @@ export async function removeOrQueueVisitPhoto(
 async function removeListed(
   driver: VisitPhotoCleanupDriver,
   userId: string,
-  list: () => Promise<string[]>,
+  list: () => Promise<string[]>
 ): Promise<void> {
   let paths: string[];
   try {
@@ -68,11 +60,9 @@ async function removeListed(
 
 export async function retryVisitPhotoCleanup(
   driver: VisitPhotoCleanupDriver,
-  userId: string,
+  userId: string
 ): Promise<void> {
-  await removeListed(driver, userId, () =>
-    driver.list(userId, CLEANUP_RETRY_LIMIT),
-  );
+  await removeListed(driver, userId, () => driver.list(userId, CLEANUP_RETRY_LIMIT));
 }
 
 // An upload the browser never got to save holds evidence budget until something
@@ -80,9 +70,9 @@ export async function retryVisitPhotoCleanup(
 export async function reclaimAbandonedVisitPhotos(
   driver: VisitPhotoCleanupDriver,
   userId: string,
-  exceptPath: string | null,
+  exceptPath: string | null
 ): Promise<void> {
   await removeListed(driver, userId, () =>
-    driver.listAbandoned(userId, exceptPath, CLEANUP_RETRY_LIMIT),
+    driver.listAbandoned(userId, exceptPath, CLEANUP_RETRY_LIMIT)
   );
 }

@@ -17,9 +17,7 @@ const endedPopup: RestaurantSummary = {
   sourceUrl: "https://example.com/source",
   certifications: [],
   awards: [],
-  availabilityPeriods: [
-    { startsOn: "2026-01-01", endsOn: "2026-01-31", note: null },
-  ],
+  availabilityPeriods: [{ startsOn: "2026-01-01", endsOn: "2026-01-31", note: null }],
   videos: [],
 };
 
@@ -28,8 +26,8 @@ describe("getAvailabilityState", () => {
     expect(
       getAvailabilityState(
         [{ startsOn: "2026-08-01", endsOn: "2026-08-31", note: null }],
-        "2026-08-10",
-      ),
+        "2026-08-10"
+      )
     ).toBe("current");
   });
 
@@ -40,22 +38,14 @@ describe("getAvailabilityState", () => {
 
 describe("filterRestaurants", () => {
   it("excludes an ended popup by default", () => {
-    expect(
-      filterRestaurants(
-        [endedPopup],
-        { includeEndedPopups: false },
-        "2026-08-10",
-      ),
-    ).toEqual([]);
+    expect(filterRestaurants([endedPopup], { includeEndedPopups: false }, "2026-08-10")).toEqual(
+      []
+    );
   });
 
   it("reveals an ended popup when explicitly included", () => {
-    expect(
-      filterRestaurants(
-        [endedPopup],
-        { includeEndedPopups: true },
-        "2026-08-10",
-      ),
-    ).toEqual([endedPopup]);
+    expect(filterRestaurants([endedPopup], { includeEndedPopups: true }, "2026-08-10")).toEqual([
+      endedPopup,
+    ]);
   });
 });

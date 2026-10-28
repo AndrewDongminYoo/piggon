@@ -93,7 +93,7 @@ describe("environment parsing", () => {
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example",
         NEXT_PUBLIC_KAKAO_MAP_APP_KEY: "kakao-javascript-key",
-      }),
+      })
     ).toEqual({
       supabaseUrl: "https://example.supabase.co",
       supabasePublishableKey: "sb_publishable_example",
@@ -106,7 +106,7 @@ describe("environment parsing", () => {
       parseServerEnv({
         SUPABASE_SECRET_KEY: "secret-key",
         ADMIN_GOOGLE_EMAIL: "not-an-email",
-      }),
+      })
     ).toThrow();
   });
 });
@@ -160,8 +160,7 @@ export function parsePublicEnv(source: Record<string, string | undefined>) {
 export function getPublicEnv() {
   return parsePublicEnv({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_KAKAO_MAP_APP_KEY: process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY,
   });
 }
@@ -459,9 +458,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
 ```
 
@@ -486,8 +483,7 @@ export async function requireAdmin() {
   const adminEmail = getServerEnv().adminGoogleEmail;
 
   if (error || !data.user) redirect("/?auth=required");
-  if (data.user.email?.toLowerCase() !== adminEmail)
-    redirect("/?auth=forbidden");
+  if (data.user.email?.toLowerCase() !== adminEmail) redirect("/?auth=forbidden");
   return data.user;
 }
 ```
@@ -530,9 +526,7 @@ git commit -m "feat(auth): add Google login and owner guard"
 
 ```ts
 it("parses a YouTube URL and timestamp", () => {
-  expect(
-    parseYouTubeUrl("https://www.youtube.com/watch?v=2lozYHXjAzY&t=125s"),
-  ).toEqual({
+  expect(parseYouTubeUrl("https://www.youtube.com/watch?v=2lozYHXjAzY&t=125s")).toEqual({
     videoId: "2lozYHXjAzY",
     startSeconds: 125,
   });
@@ -543,9 +537,7 @@ it("rejects non-post Instagram URLs", () => {
 });
 
 it("excludes an ended popup by default", () => {
-  expect(
-    filterRestaurants([endedPopup], { includeEndedPopups: false }),
-  ).toEqual([]);
+  expect(filterRestaurants([endedPopup], { includeEndedPopups: false })).toEqual([]);
 });
 ```
 
@@ -603,10 +595,7 @@ git commit -m "feat(restaurants): add restaurant domain layer"
 ```ts
 it.each([
   [{ isDesktop: true, prefersReducedMotion: false, hasSeenIntro: false }, true],
-  [
-    { isDesktop: false, prefersReducedMotion: false, hasSeenIntro: false },
-    false,
-  ],
+  [{ isDesktop: false, prefersReducedMotion: false, hasSeenIntro: false }, false],
   [{ isDesktop: true, prefersReducedMotion: true, hasSeenIntro: false }, false],
   [{ isDesktop: true, prefersReducedMotion: false, hasSeenIntro: true }, false],
 ])("returns the expected intro decision", (input, expected) => {
@@ -738,7 +727,7 @@ git commit -m "feat(atlas): add synchronized Kakao map discovery"
 ```ts
 it("builds a canonical timestamp URL", () => {
   expect(buildYouTubeTimestampUrl("2lozYHXjAzY", 125)).toBe(
-    "https://www.youtube.com/watch?v=2lozYHXjAzY&t=125s",
+    "https://www.youtube.com/watch?v=2lozYHXjAzY&t=125s"
   );
 });
 ```
@@ -812,21 +801,19 @@ it("accepts one Instagram post as evidence", () => {
       photoPath: null,
       rating: 5,
       reviewBody: "다시 먹고 싶은 피자",
-    }).evidenceType,
+    }).evidenceType
   ).toBe("instagram");
 });
 
 it("builds an owner-scoped photo path", () => {
-  expect(
-    createVisitPhotoPath("user-id", "restaurant-id", "webp", "file-id"),
-  ).toBe("user-id/restaurant-id/file-id.webp");
+  expect(createVisitPhotoPath("user-id", "restaurant-id", "webp", "file-id")).toBe(
+    "user-id/restaurant-id/file-id.webp"
+  );
 });
 
 it("detects a PNG from its file signature", () => {
   expect(
-    detectImageMediaType(
-      Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    ),
+    detectImageMediaType(Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
   ).toBe("image/png");
 });
 ```
@@ -912,7 +899,7 @@ it("rejects publishing a restaurant without coordinates", () => {
       certifications: [],
       awards: [],
       availabilityPeriods: [],
-    }),
+    })
   ).toThrow();
 });
 ```
@@ -994,7 +981,7 @@ it("accepts two restaurants with independent timestamps", () => {
           contextNote: "오르노",
         },
       ],
-    }).links,
+    }).links
   ).toHaveLength(2);
 });
 ```

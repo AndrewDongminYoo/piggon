@@ -13,9 +13,7 @@ function startsWith(bytes: Uint8Array, signature: number[]): boolean {
 
 function endsWith(bytes: Uint8Array, signature: number[]): boolean {
   const offset = bytes.length - signature.length;
-  return (
-    offset >= 0 && signature.every((value, i) => bytes[offset + i] === value)
-  );
+  return offset >= 0 && signature.every((value, i) => bytes[offset + i] === value);
 }
 
 function withoutTrailingZeros(bytes: Uint8Array): Uint8Array {
@@ -44,9 +42,7 @@ function readUint32LE(bytes: Uint8Array, offset: number): number {
 // This is not a decoder. It rejects a header glued onto arbitrary data, which is
 // the reachable case; it does not prove the pixels decode. Doing that would mean
 // taking on an image library, which is a bigger call than this check deserves.
-export function detectImageMediaType(
-  bytes: Uint8Array,
-): VisitImageMediaType | null {
+export function detectImageMediaType(bytes: Uint8Array): VisitImageMediaType | null {
   if (
     startsWith(bytes, [0xff, 0xd8, 0xff]) &&
     // SOI ... EOI, with enough between them to hold a frame. Trailing zero
@@ -83,9 +79,7 @@ export function detectImageMediaType(
   return null;
 }
 
-export function extensionForMediaType(
-  mediaType: VisitImageMediaType,
-): VisitImageExtension {
+export function extensionForMediaType(mediaType: VisitImageMediaType): VisitImageExtension {
   if (mediaType === "image/jpeg") {
     return "jpg";
   }
@@ -97,7 +91,7 @@ export function createVisitPhotoPath(
   userId: string,
   restaurantId: string,
   extension: VisitImageExtension,
-  fileId = crypto.randomUUID(),
+  fileId = crypto.randomUUID()
 ): string {
   if (
     !SAFE_PATH_SEGMENT.test(userId) ||
@@ -113,7 +107,7 @@ export function createVisitPhotoPath(
 export function isOwnedVisitPhotoPath(
   photoPath: string,
   userId: string,
-  restaurantId: string,
+  restaurantId: string
 ): boolean {
   const [pathUserId, pathRestaurantId, fileName, extra] = photoPath.split("/");
 
@@ -127,9 +121,6 @@ export function isOwnedVisitPhotoPath(
   );
 }
 
-export function pathMatchesMediaType(
-  photoPath: string,
-  mediaType: VisitImageMediaType,
-): boolean {
+export function pathMatchesMediaType(photoPath: string, mediaType: VisitImageMediaType): boolean {
   return photoPath.endsWith(`.${extensionForMediaType(mediaType)}`);
 }

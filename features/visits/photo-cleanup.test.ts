@@ -10,7 +10,7 @@ import {
 function createDriver(
   removeError: string | null,
   queuedPaths: string[] = [],
-  abandonedPaths: string[] = [],
+  abandonedPaths: string[] = []
 ): VisitPhotoCleanupDriver {
   return {
     clear: vi.fn(async () => true),
@@ -25,9 +25,9 @@ describe("visit photo cleanup", () => {
   it("queues a failed deletion with its owner for retry", async () => {
     const driver = createDriver("temporary storage failure");
 
-    await expect(
-      removeOrQueueVisitPhoto(driver, "user/restaurant/old.webp", "user"),
-    ).resolves.toBe(false);
+    await expect(removeOrQueueVisitPhoto(driver, "user/restaurant/old.webp", "user")).resolves.toBe(
+      false
+    );
     expect(driver.queue).toHaveBeenCalledWith({
       lastError: "temporary storage failure",
       path: "user/restaurant/old.webp",
@@ -39,9 +39,9 @@ describe("visit photo cleanup", () => {
     const driver = createDriver(null);
     vi.mocked(driver.remove).mockRejectedValueOnce(new Error("network down"));
 
-    await expect(
-      removeOrQueueVisitPhoto(driver, "user/restaurant/old.webp", "user"),
-    ).resolves.toBe(false);
+    await expect(removeOrQueueVisitPhoto(driver, "user/restaurant/old.webp", "user")).resolves.toBe(
+      false
+    );
     expect(driver.queue).toHaveBeenCalledWith({
       lastError: "Storage cleanup request failed",
       path: "user/restaurant/old.webp",
@@ -64,27 +64,17 @@ describe("visit photo cleanup", () => {
   it("reclaims abandoned uploads while exempting the one being saved", async () => {
     const driver = createDriver(null, [], ["user/restaurant/abandoned.webp"]);
 
-    await reclaimAbandonedVisitPhotos(
-      driver,
-      "user",
-      "user/restaurant/in-flight.webp",
-    );
+    await reclaimAbandonedVisitPhotos(driver, "user", "user/restaurant/in-flight.webp");
 
-    expect(driver.listAbandoned).toHaveBeenCalledWith(
-      "user",
-      "user/restaurant/in-flight.webp",
-      5,
-    );
-    expect(driver.remove).toHaveBeenCalledWith(
-      "user/restaurant/abandoned.webp",
-    );
+    expect(driver.listAbandoned).toHaveBeenCalledWith("user", "user/restaurant/in-flight.webp", 5);
+    expect(driver.remove).toHaveBeenCalledWith("user/restaurant/abandoned.webp");
   });
 
   it("queues an abandoned upload whose deletion fails", async () => {
     const driver = createDriver(
       "temporary storage failure",
       [],
-      ["user/restaurant/abandoned.webp"],
+      ["user/restaurant/abandoned.webp"]
     );
 
     await reclaimAbandonedVisitPhotos(driver, "user", null);

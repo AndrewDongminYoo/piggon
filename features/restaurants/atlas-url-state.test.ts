@@ -12,7 +12,7 @@ describe("atlas URL state", () => {
         restaurant: "marione-seongsu",
         video: "1",
         view: "list",
-      }),
+      })
     ).toEqual({
       filter: {
         hasAvpnCertification: true,
@@ -36,7 +36,7 @@ describe("atlas URL state", () => {
         },
         mobileView: "map",
         selectedRestaurantSlug: null,
-      }),
+      })
     ).toBe("award=1&open=1");
   });
 });

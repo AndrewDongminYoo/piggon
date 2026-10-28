@@ -18,9 +18,7 @@ export default async function NewRestaurantPage() {
         <div>
           <span>NEW RESTAURANT</span>
           <h1>새 맛집 등록</h1>
-          <p>
-            초안은 핵심 이름만으로 저장할 수 있고, 공개할 때 출처를 완성합니다.
-          </p>
+          <p>초안은 핵심 이름만으로 저장할 수 있고, 공개할 때 출처를 완성합니다.</p>
         </div>
       </header>
       <RestaurantForm appKey={kakaoMapAppKey} />

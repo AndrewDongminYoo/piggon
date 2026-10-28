@@ -4,10 +4,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { StampBadge } from "@/components/ui/stamp-badge";
 import { ProfileForm } from "@/features/visits/components/visit-form";
 import { VisitCard } from "@/features/visits/components/visit-card";
-import {
-  getViewerProfile,
-  listUserCollection,
-} from "@/features/visits/queries";
+import { getViewerProfile, listUserCollection } from "@/features/visits/queries";
 import { requireUser } from "@/lib/auth/require-user";
 
 export const metadata: Metadata = {
@@ -28,9 +25,7 @@ export default async function MyPizzaPage() {
         <div>
           <StampBadge tone="tomato">MY SLICE LOG</StampBadge>
           <h1>내가 먹어본 피자</h1>
-          <p>
-            리워드 경쟁 대신 직접 먹어본 피자를 하나씩 모으는 개인 컬렉션입니다.
-          </p>
+          <p>리워드 경쟁 대신 직접 먹어본 피자를 하나씩 모으는 개인 컬렉션입니다.</p>
         </div>
         <strong>
           <span>{collection.length}</span>

@@ -7,9 +7,7 @@ const OWNED_PATH = `${USER_ID}/${RESTAURANT_ID}/photo.webp`;
 // Smallest byte sequence that satisfies the structural WebP check: RIFF header, a
 // declared size that agrees with the payload, and the WEBP tag. Structurally
 // valid and not an image — which is the whole point of the decode gate.
-const WEBP_HEADER = Uint8Array.from([
-  0x52, 0x49, 0x46, 0x46, 4, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
-]);
+const WEBP_HEADER = Uint8Array.from([0x52, 0x49, 0x46, 0x46, 4, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
 
 const {
   cleanupStoredVisitPhoto,
@@ -90,11 +88,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import {
-  discardUploadedVisitPhoto,
-  reclaimAbandonedVisitEvidence,
-  upsertVisit,
-} from "./actions";
+import { discardUploadedVisitPhoto, reclaimAbandonedVisitEvidence, upsertVisit } from "./actions";
 
 function photoVisitForm(overrides: Record<string, string> = {}): FormData {
   const formData = new FormData();
@@ -130,10 +124,7 @@ describe("reclaimAbandonedVisitEvidence", () => {
     await reclaimAbandonedVisitEvidence();
 
     expect(retryStoredVisitPhotoCleanup).toHaveBeenCalledWith(USER_ID);
-    expect(reclaimStoredAbandonedVisitPhotos).toHaveBeenCalledWith(
-      USER_ID,
-      null,
-    );
+    expect(reclaimStoredAbandonedVisitPhotos).toHaveBeenCalledWith(USER_ID, null);
   });
 });
 
@@ -178,7 +169,7 @@ describe("upsertVisit photo evidence", () => {
     expect(recordValidatedVisitEvidence).toHaveBeenCalledWith(
       OWNED_PATH,
       USER_ID,
-      "recorded-version",
+      "recorded-version"
     );
     expect(state.status).toBe("success");
   });
@@ -198,7 +189,7 @@ describe("upsertVisit photo evidence", () => {
       INITIAL,
       photoVisitForm({
         photoPath: `33333333-3333-4333-8333-333333333333/${RESTAURANT_ID}/photo.webp`,
-      }),
+      })
     );
 
     expect(state.status).toBe("error");
@@ -236,7 +227,7 @@ describe("discardUploadedVisitPhoto", () => {
   it("refuses a path outside the caller's own folder", async () => {
     await discardUploadedVisitPhoto(
       RESTAURANT_ID,
-      `33333333-3333-4333-8333-333333333333/${RESTAURANT_ID}/photo.webp`,
+      `33333333-3333-4333-8333-333333333333/${RESTAURANT_ID}/photo.webp`
     );
 
     expect(cleanupStoredVisitPhoto).not.toHaveBeenCalled();

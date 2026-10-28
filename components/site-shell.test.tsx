@@ -8,13 +8,13 @@ describe("SiteShell", () => {
     const markup = renderToStaticMarkup(
       <SiteShell>
         <main>본문</main>
-      </SiteShell>,
+      </SiteShell>
     );
 
     expect(markup).toContain('href="#main-content"');
     expect(markup).toContain('id="main-content"');
     expect(markup.indexOf('href="#main-content"')).toBeLessThan(
-      markup.indexOf('class="site-header"'),
+      markup.indexOf('class="site-header"')
     );
   });
 });

@@ -16,7 +16,7 @@ describe("PublicVisitCard", () => {
           review: null,
           visitedOn: "2026-08-11",
         }}
-      />,
+      />
     );
 
     expect(markup).not.toContain("token=secret");

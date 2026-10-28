@@ -1,13 +1,8 @@
 import { z } from "zod";
 
 const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
-const DATABASE_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const YOUTUBE_HOSTS = new Set([
-  "m.youtube.com",
-  "www.youtube.com",
-  "youtube.com",
-]);
+const DATABASE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const YOUTUBE_HOSTS = new Set(["m.youtube.com", "www.youtube.com", "youtube.com"]);
 
 function trimOrNull(value: unknown): unknown {
   if (typeof value !== "string") {
@@ -23,9 +18,7 @@ export type CanonicalYouTubeVideo = {
   videoId: string;
 };
 
-export function canonicalizeYouTubeUrl(
-  value: string,
-): CanonicalYouTubeVideo | null {
+export function canonicalizeYouTubeUrl(value: string): CanonicalYouTubeVideo | null {
   try {
     const url = new URL(value);
     if (url.protocol !== "https:" || url.username || url.password || url.port) {
@@ -42,8 +35,7 @@ export function canonicalizeYouTubeUrl(
       } else {
         const pathSegments = url.pathname.split("/").filter(Boolean);
         videoId =
-          pathSegments.length === 2 &&
-          ["embed", "live", "shorts"].includes(pathSegments[0])
+          pathSegments.length === 2 && ["embed", "live", "shorts"].includes(pathSegments[0])
             ? pathSegments[1]
             : null;
       }
@@ -62,10 +54,7 @@ export function canonicalizeYouTubeUrl(
   }
 }
 
-export function isAllowedYouTubeThumbnail(
-  value: string,
-  videoId: string,
-): boolean {
+export function isAllowedYouTubeThumbnail(value: string, videoId: string): boolean {
   try {
     const url = new URL(value);
     const expectedPrefix = `/vi/${videoId}/`;
@@ -94,7 +83,7 @@ const videoLinkSchema = z.object({
   restaurantId: z.string().regex(DATABASE_ID_PATTERN),
   startSeconds: z.preprocess(
     trimOrNull,
-    z.union([z.null(), z.coerce.number().int().min(0).max(2_147_483_647)]),
+    z.union([z.null(), z.coerce.number().int().min(0).max(2_147_483_647)])
   ),
 });
 
@@ -102,7 +91,7 @@ export const videoAdminSchema = z
   .object({
     editingVideoId: z.preprocess(
       (value) => trimOrNull(value) ?? null,
-      z.union([z.null(), z.string().regex(DATABASE_ID_PATTERN)]),
+      z.union([z.null(), z.string().regex(DATABASE_ID_PATTERN)])
     ),
     fetchState: z.enum(["failed", "fetched", "manual", "pending"]),
     links: z.array(videoLinkSchema).min(1).max(100),
@@ -130,10 +119,7 @@ export const videoAdminSchema = z
       });
     }
 
-    if (
-      value.thumbnailUrl &&
-      !isAllowedYouTubeThumbnail(value.thumbnailUrl, canonical.videoId)
-    ) {
+    if (value.thumbnailUrl && !isAllowedYouTubeThumbnail(value.thumbnailUrl, canonical.videoId)) {
       context.addIssue({
         code: "custom",
         message: "해당 영상의 i.ytimg.com 썸네일 URL만 사용할 수 있습니다.",

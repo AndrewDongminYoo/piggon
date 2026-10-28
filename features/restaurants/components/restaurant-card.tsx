@@ -24,7 +24,7 @@ const AVAILABILITY_LABELS = {
 
 function hasAvpnCertification(restaurant: RestaurantSummary): boolean {
   return restaurant.certifications.some(({ issuer, name }) =>
-    `${issuer} ${name}`.toLowerCase().includes("avpn"),
+    `${issuer} ${name}`.toLowerCase().includes("avpn")
   );
 }
 
@@ -34,17 +34,11 @@ export function RestaurantCard({
   onSelect,
   restaurant,
 }: RestaurantCardProps) {
-  const availability = getAvailabilityState(
-    restaurant.availabilityPeriods,
-    currentDate,
-  );
-  const hasCoordinates =
-    restaurant.latitude !== null && restaurant.longitude !== null;
+  const availability = getAvailabilityState(restaurant.availabilityPeriods, currentDate);
+  const hasCoordinates = restaurant.latitude !== null && restaurant.longitude !== null;
 
   return (
-    <article
-      className={`restaurant-card ${isSelected ? "restaurant-card--selected" : ""}`.trim()}
-    >
+    <article className={`restaurant-card ${isSelected ? "restaurant-card--selected" : ""}`.trim()}>
       <button
         aria-pressed={isSelected}
         className="restaurant-card__button"
@@ -60,28 +54,20 @@ export function RestaurantCard({
             <small>{KIND_LABELS[restaurant.kind]}</small>
           </span>
           {restaurant.alternateName ? (
-            <span className="restaurant-card__alternate">
-              {restaurant.alternateName}
-            </span>
+            <span className="restaurant-card__alternate">{restaurant.alternateName}</span>
           ) : null}
           <span className="restaurant-card__address">
             {restaurant.address ?? restaurant.region}
           </span>
           <span className="restaurant-card__badges">
             {restaurant.videos.length > 0 ? (
-              <span className="mini-stamp mini-stamp--tomato">
-                영상 {restaurant.videos.length}
-              </span>
+              <span className="mini-stamp mini-stamp--tomato">영상 {restaurant.videos.length}</span>
             ) : null}
             {hasAvpnCertification(restaurant) ? (
               <span className="mini-stamp mini-stamp--basil">AVPN</span>
             ) : null}
-            {restaurant.awards.length > 0 ? (
-              <span className="mini-stamp">대회 수상</span>
-            ) : null}
-            <span className="mini-stamp">
-              {AVAILABILITY_LABELS[availability]}
-            </span>
+            {restaurant.awards.length > 0 ? <span className="mini-stamp">대회 수상</span> : null}
+            <span className="mini-stamp">{AVAILABILITY_LABELS[availability]}</span>
           </span>
           <span className="restaurant-card__map-state">
             {hasCoordinates ? "지도에서 찾기 →" : "지도 위치 검증 중"}

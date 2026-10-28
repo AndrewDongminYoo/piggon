@@ -3,10 +3,7 @@ export type PlaceSource = {
   url: string;
 };
 
-export function getNextPlaceSource(
-  current: PlaceSource,
-  nextAutoUrl: string,
-): PlaceSource {
+export function getNextPlaceSource(current: PlaceSource, nextAutoUrl: string): PlaceSource {
   const shouldRefresh = !current.url || current.url === current.autoUrl;
 
   return {

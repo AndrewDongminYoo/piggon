@@ -10,10 +10,7 @@ export type AtlasUrlState = {
   selectedRestaurantSlug: string | null;
 };
 
-function readSearchParam(
-  searchParams: AtlasSearchParams,
-  key: string,
-): string | undefined {
+function readSearchParam(searchParams: AtlasSearchParams, key: string): string | undefined {
   const value = searchParams[key];
 
   return Array.isArray(value) ? value[0] : value;
@@ -23,9 +20,7 @@ function isEnabled(searchParams: AtlasSearchParams, key: string): boolean {
   return readSearchParam(searchParams, key) === "1";
 }
 
-export function parseAtlasUrlState(
-  searchParams: AtlasSearchParams,
-): AtlasUrlState {
+export function parseAtlasUrlState(searchParams: AtlasSearchParams): AtlasUrlState {
   const search = readSearchParam(searchParams, "q")?.trim();
   const selectedRestaurantSlug = readSearchParam(searchParams, "restaurant");
 
@@ -33,17 +28,12 @@ export function parseAtlasUrlState(
     filter: {
       ...(search ? { search } : {}),
       ...(isEnabled(searchParams, "video") ? { hasVideo: true } : {}),
-      ...(isEnabled(searchParams, "avpn")
-        ? { hasAvpnCertification: true }
-        : {}),
+      ...(isEnabled(searchParams, "avpn") ? { hasAvpnCertification: true } : {}),
       ...(isEnabled(searchParams, "award") ? { hasAward: true } : {}),
-      ...(isEnabled(searchParams, "open")
-        ? { currentAvailabilityOnly: true }
-        : {}),
+      ...(isEnabled(searchParams, "open") ? { currentAvailabilityOnly: true } : {}),
       ...(isEnabled(searchParams, "past") ? { includeEndedPopups: true } : {}),
     },
-    mobileView:
-      readSearchParam(searchParams, "view") === "list" ? "list" : "map",
+    mobileView: readSearchParam(searchParams, "view") === "list" ? "list" : "map",
     selectedRestaurantSlug: selectedRestaurantSlug || null,
   };
 }

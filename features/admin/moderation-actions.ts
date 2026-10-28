@@ -30,7 +30,7 @@ function refreshModeratedContent(slug: string): void {
 
 async function updateVisitHidden(
   formData: FormData,
-  hidden: boolean,
+  hidden: boolean
 ): Promise<ModerationActionState> {
   await requireAdmin();
 
@@ -82,7 +82,7 @@ async function updateVisitHidden(
 
 async function updateReviewHidden(
   formData: FormData,
-  hidden: boolean,
+  hidden: boolean
 ): Promise<ModerationActionState> {
   await requireAdmin();
 
@@ -131,37 +131,35 @@ async function updateReviewHidden(
 
   refreshModeratedContent(restaurant.slug);
   return {
-    message: hidden
-      ? "리뷰를 공개 화면에서 숨겼습니다."
-      : "리뷰를 공개 화면에 복원했습니다.",
+    message: hidden ? "리뷰를 공개 화면에서 숨겼습니다." : "리뷰를 공개 화면에 복원했습니다.",
     status: "success",
   };
 }
 
 export async function hideVisit(
   _previousState: ModerationActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ModerationActionState> {
   return updateVisitHidden(formData, true);
 }
 
 export async function restoreVisit(
   _previousState: ModerationActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ModerationActionState> {
   return updateVisitHidden(formData, false);
 }
 
 export async function hideReview(
   _previousState: ModerationActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ModerationActionState> {
   return updateReviewHidden(formData, true);
 }
 
 export async function restoreReview(
   _previousState: ModerationActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ModerationActionState> {
   return updateReviewHidden(formData, false);
 }

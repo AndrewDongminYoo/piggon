@@ -30,7 +30,7 @@ describe("restaurantAdminSchema", () => {
         latitude: "",
         longitude: "",
         sourceUrl: "",
-      }).intent,
+      }).intent
     ).toBe("draft");
   });
 
@@ -41,7 +41,7 @@ describe("restaurantAdminSchema", () => {
         intent: "publish",
         latitude: "",
         longitude: "",
-      }),
+      })
     ).toThrow();
   });
 
@@ -51,7 +51,7 @@ describe("restaurantAdminSchema", () => {
         ...baseRestaurant,
         intent: "publish",
         kind: "popup",
-      }),
+      })
     ).toThrow();
   });
 
@@ -78,7 +78,7 @@ describe("restaurantAdminSchema", () => {
             validUntil: "",
           },
         ],
-      }),
+      })
     ).toThrow();
   });
 

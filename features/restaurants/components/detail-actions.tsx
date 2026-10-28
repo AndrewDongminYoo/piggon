@@ -23,7 +23,7 @@ export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
     try {
       const url = new URL(
         `/restaurants/${encodeURIComponent(restaurantSlug)}`,
-        window.location.origin,
+        window.location.origin
       );
       await navigator.clipboard.writeText(url.toString());
       setCopyState("copied");
@@ -48,10 +48,7 @@ export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
           flows dead-end: the visit action is reachable only by copying the link
           and opening it by hand. Lives here so every panel usage gets it. */}
       {onBack ? (
-        <Link
-          className="detail-open"
-          href={`/restaurants/${encodeURIComponent(restaurantSlug)}`}
-        >
+        <Link className="detail-open" href={`/restaurants/${encodeURIComponent(restaurantSlug)}`}>
           방문 인증하러 가기 →
         </Link>
       ) : null}
@@ -62,11 +59,7 @@ export function DetailActions({ onBack, restaurantSlug }: DetailActionsProps) {
             ? "복사하지 못했어요"
             : "상세 링크 복사"}
       </button>
-      <span
-        aria-atomic="true"
-        aria-live="polite"
-        className="screen-reader-text"
-      >
+      <span aria-atomic="true" aria-live="polite" className="screen-reader-text">
         {copyFeedback}
       </span>
     </div>

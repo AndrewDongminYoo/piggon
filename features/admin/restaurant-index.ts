@@ -13,15 +13,13 @@ type AdminRestaurantIndexFilter = {
 
 export function filterAdminRestaurantIndex<T extends AdminRestaurantIndexItem>(
   restaurants: T[],
-  { query, status }: AdminRestaurantIndexFilter,
+  { query, status }: AdminRestaurantIndexFilter
 ): T[] {
   const normalizedQuery = query.trim().toLowerCase();
 
   return restaurants.filter((restaurant) => {
     const matchesStatus = status === "all" || restaurant.status === status;
-    const matchesQuery = restaurant.name
-      .toLowerCase()
-      .includes(normalizedQuery);
+    const matchesQuery = restaurant.name.toLowerCase().includes(normalizedQuery);
 
     return matchesStatus && matchesQuery;
   });

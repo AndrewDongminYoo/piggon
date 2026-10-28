@@ -497,10 +497,7 @@ textarea:focus-visible {
 .map-loading {
   align-items: center;
   background-color: var(--paper-deep);
-  background-image: radial-gradient(
-    rgba(29, 25, 21, 0.13) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(rgba(29, 25, 21, 0.13) 1px, transparent 1px);
   background-size: 12px 12px;
   display: flex;
   font-weight: 900;
@@ -856,10 +853,7 @@ textarea:focus-visible {
 
 .restaurant-detail__header {
   background-color: var(--paper-deep);
-  background-image: radial-gradient(
-    rgba(29, 25, 21, 0.09) 0.7px,
-    transparent 0.7px
-  );
+  background-image: radial-gradient(rgba(29, 25, 21, 0.09) 0.7px, transparent 0.7px);
   background-size: 7px 7px;
   padding: clamp(22px, 5vw, 54px);
 }
@@ -2528,10 +2522,7 @@ textarea:focus-visible {
 .pizza-intro {
   align-items: center;
   background-color: var(--kraft-dark);
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.08) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
   background-size: 8px 8px;
   display: flex;
   flex-direction: column;
@@ -2611,8 +2602,7 @@ textarea:focus-visible {
 .pizza-disc {
   background:
     radial-gradient(circle at 45% 35%, var(--cheese) 0 6%, transparent 7%),
-    radial-gradient(circle at 60% 52%, var(--cheese) 0 6%, transparent 7%),
-    #dc5c37;
+    radial-gradient(circle at 60% 52%, var(--cheese) 0 6%, transparent 7%), #dc5c37;
   border: 17px solid #d9a14a;
   border-radius: 50%;
   box-shadow: inset 0 0 0 3px var(--ink);

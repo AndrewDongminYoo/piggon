@@ -12,7 +12,7 @@ type PublishedRestaurant = Omit<CollectionRestaurant, "isAvailable"> & {
 
 export function getCollectionRestaurant(
   restaurantId: string,
-  restaurant: PublishedRestaurant | null,
+  restaurant: PublishedRestaurant | null
 ): CollectionRestaurant {
   if (restaurant) {
     return { ...restaurant, isAvailable: true };

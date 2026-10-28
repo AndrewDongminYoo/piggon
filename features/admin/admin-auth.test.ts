@@ -13,8 +13,8 @@ describe("isAuthorizedGoogleAdmin", () => {
           email: "ADMIN@example.com",
           email_confirmed_at: "2026-08-11T00:00:00.000Z",
         },
-        adminEmail,
-      ),
+        adminEmail
+      )
     ).toBe(true);
   });
 
@@ -26,8 +26,8 @@ describe("isAuthorizedGoogleAdmin", () => {
           email: adminEmail,
           email_confirmed_at: "2026-08-11T00:00:00.000Z",
         },
-        adminEmail,
-      ),
+        adminEmail
+      )
     ).toBe(false);
   });
 
@@ -39,8 +39,8 @@ describe("isAuthorizedGoogleAdmin", () => {
           email: adminEmail,
           email_confirmed_at: null,
         },
-        adminEmail,
-      ),
+        adminEmail
+      )
     ).toBe(false);
   });
 });

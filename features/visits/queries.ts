@@ -3,10 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import {
-  getCollectionRestaurant,
-  type CollectionRestaurant,
-} from "./collection";
+import { getCollectionRestaurant, type CollectionRestaurant } from "./collection";
 import { isOwnedVisitPhotoPath, VISIT_EVIDENCE_BUCKET } from "./storage";
 
 export type VisitReview = {
@@ -96,11 +93,11 @@ export async function createVisitPhotoUrlMap(
     photo_path: string | null;
     restaurant_id: string;
     user_id: string;
-  }>,
+  }>
 ): Promise<Map<string, string>> {
   const photoRows = rows.filter(
     (
-      row,
+      row
     ): row is {
       id: string;
       photo_path: string;
@@ -108,7 +105,7 @@ export async function createVisitPhotoUrlMap(
       user_id: string;
     } =>
       row.photo_path !== null &&
-      isOwnedVisitPhotoPath(row.photo_path, row.user_id, row.restaurant_id),
+      isOwnedVisitPhotoPath(row.photo_path, row.user_id, row.restaurant_id)
   );
   if (photoRows.length === 0) {
     return new Map();
@@ -127,19 +124,13 @@ export async function createVisitPhotoUrlMap(
         });
       }
       return [id, error ? null : data.signedUrl] as const;
-    }),
+    })
   );
 
-  return new Map(
-    entries.filter(
-      (entry): entry is readonly [string, string] => entry[1] !== null,
-    ),
-  );
+  return new Map(entries.filter((entry): entry is readonly [string, string] => entry[1] !== null));
 }
 
-export async function getViewerProfile(
-  userId: string,
-): Promise<ViewerProfile | null> {
+export async function getViewerProfile(userId: string): Promise<ViewerProfile | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -156,13 +147,13 @@ export async function getViewerProfile(
 
 export async function getViewerVisit(
   restaurantId: string,
-  userId: string,
+  userId: string
 ): Promise<ViewerVisit | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("visits")
     .select(
-      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at, hidden",
+      "id, user_id, restaurant_id, visited_on, evidence_type, photo_path, instagram_url, updated_at, hidden"
     )
     .eq("restaurant_id", restaurantId)
     .eq("user_id", userId)
@@ -203,9 +194,7 @@ export async function getViewerVisit(
   };
 }
 
-export async function getPublicRestaurantCommunity(
-  restaurantId: string,
-): Promise<PublicVisit[]> {
+export async function getPublicRestaurantCommunity(restaurantId: string): Promise<PublicVisit[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("visits")
@@ -225,17 +214,15 @@ export async function getPublicRestaurantCommunity(
 
   const userIds = [...new Set(visits.map((visit) => visit.user_id))];
   const visitIds = visits.map((visit) => visit.id);
-  const [
-    { data: profiles, error: profileError },
-    { data: reviews, error: reviewError },
-  ] = await Promise.all([
-    supabase.from("profiles").select("id, display_name").in("id", userIds),
-    supabase
-      .from("reviews")
-      .select("id, visit_id, rating, body, updated_at, hidden")
-      .in("visit_id", visitIds)
-      .eq("hidden", false),
-  ]);
+  const [{ data: profiles, error: profileError }, { data: reviews, error: reviewError }] =
+    await Promise.all([
+      supabase.from("profiles").select("id, display_name").in("id", userIds),
+      supabase
+        .from("reviews")
+        .select("id, visit_id, rating, body, updated_at, hidden")
+        .in("visit_id", visitIds)
+        .eq("hidden", false),
+    ]);
 
   if (profileError || reviewError) {
     throw new Error("Unable to load public visit details", {
@@ -244,10 +231,10 @@ export async function getPublicRestaurantCommunity(
   }
 
   const profileByUserId = new Map(
-    (profiles ?? []).map((profile) => [profile.id, profile.display_name]),
+    (profiles ?? []).map((profile) => [profile.id, profile.display_name])
   );
   const reviewByVisitId = new Map(
-    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review]),
+    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review])
   );
 
   return visits.flatMap((visit) => {
@@ -270,9 +257,7 @@ export async function getPublicRestaurantCommunity(
   });
 }
 
-export async function listUserCollection(
-  userId: string,
-): Promise<UserCollectionItem[]> {
+export async function listUserCollection(userId: string): Promise<UserCollectionItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("visits")
@@ -294,7 +279,7 @@ export async function listUserCollection(
           region,
           status
         )
-      `,
+      `
     )
     .eq("user_id", userId)
     .order("visited_on", { ascending: false });
@@ -323,7 +308,7 @@ export async function listUserCollection(
       .select("id, visit_id, rating, body, updated_at, hidden")
       .in(
         "visit_id",
-        visits.map((visit) => visit.id),
+        visits.map((visit) => visit.id)
       ),
     createVisitPhotoUrlMap(visits),
   ]);
@@ -333,7 +318,7 @@ export async function listUserCollection(
   }
 
   const reviewByVisitId = new Map(
-    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review]),
+    ((reviews ?? []) as ReviewRow[]).map((review) => [review.visit_id, review])
   );
 
   return visits.map((visit) => ({

@@ -33,9 +33,7 @@ export function parseYouTubeUrl(value: string): {
 
   let videoId: string | null = null;
 
-  if (
-    ["youtube.com", "www.youtube.com", "m.youtube.com"].includes(url.hostname)
-  ) {
+  if (["youtube.com", "www.youtube.com", "m.youtube.com"].includes(url.hostname)) {
     if (url.pathname !== "/watch") {
       throw new Error("Unsupported YouTube URL");
     }

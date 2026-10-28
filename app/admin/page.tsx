@@ -25,7 +25,7 @@ type AdminPageProps = {
 
 function readSearchParam(
   searchParams: Record<string, string | string[] | undefined>,
-  key: string,
+  key: string
 ): string {
   const value = searchParams[key];
 
@@ -33,9 +33,7 @@ function readSearchParam(
 }
 
 function readStatus(value: string): AdminRestaurantStatusFilter {
-  return value === "draft" || value === "published" || value === "archived"
-    ? value
-    : "all";
+  return value === "draft" || value === "published" || value === "archived" ? value : "all";
 }
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
@@ -71,9 +69,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         <div>
           <span>RESTAURANT INDEX</span>
           <h1>맛집 관리</h1>
-          <p>
-            출처를 확인한 맛집만 공개하고, 종료된 팝업은 운영기간으로 남깁니다.
-          </p>
+          <p>출처를 확인한 맛집만 공개하고, 종료된 팝업은 운영기간으로 남깁니다.</p>
         </div>
         <Link href="/admin/restaurants/new">+ 새 맛집 등록</Link>
       </header>
@@ -96,12 +92,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <Form action="/admin" className="admin-index-filter">
         <label>
           <span>맛집 찾기</span>
-          <input
-            defaultValue={query}
-            name="q"
-            placeholder="상호명으로 검색"
-            type="search"
-          />
+          <input defaultValue={query} name="q" placeholder="상호명으로 검색" type="search" />
         </label>
         <label>
           <span>공개 상태</span>
@@ -124,9 +115,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         {filteredRestaurants.map((restaurant) => (
           <article key={restaurant.id}>
             <div>
-              <span
-                className={`admin-status admin-status--${restaurant.status}`}
-              >
+              <span className={`admin-status admin-status--${restaurant.status}`}>
                 {STATUS_LABEL[restaurant.status]}
               </span>
               <small>{restaurant.kind}</small>
@@ -137,9 +126,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           </article>
         ))}
         {filteredRestaurants.length === 0 ? (
-          <p className="admin-restaurant-list__empty">
-            조건에 맞는 맛집이 없습니다.
-          </p>
+          <p className="admin-restaurant-list__empty">조건에 맞는 맛집이 없습니다.</p>
         ) : null}
       </section>
     </main>

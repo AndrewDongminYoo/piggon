@@ -24,10 +24,7 @@ const calendarDateSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/)
   .refine(isCalendarDate, "날짜를 확인해 주세요.");
 
-const nullableDateSchema = z.preprocess(
-  trimOrNull,
-  z.union([z.null(), calendarDateSchema]),
-);
+const nullableDateSchema = z.preprocess(trimOrNull, z.union([z.null(), calendarDateSchema]));
 
 const httpsUrlSchema = z
   .url()
@@ -36,10 +33,7 @@ const httpsUrlSchema = z
     message: "HTTPS 출처 URL을 입력해 주세요.",
   });
 
-const nullableHttpsUrlSchema = z.preprocess(
-  trimOrNull,
-  z.union([z.null(), httpsUrlSchema]),
-);
+const nullableHttpsUrlSchema = z.preprocess(trimOrNull, z.union([z.null(), httpsUrlSchema]));
 
 const nullableText = (maximum: number) =>
   z.preprocess(trimOrNull, z.union([z.null(), z.string().max(maximum)]));
@@ -54,11 +48,7 @@ const certificationSchema = z
     validUntil: nullableDateSchema,
   })
   .superRefine((value, context) => {
-    if (
-      value.validFrom &&
-      value.validUntil &&
-      value.validFrom > value.validUntil
-    ) {
+    if (value.validFrom && value.validUntil && value.validFrom > value.validUntil) {
       context.addIssue({
         code: "custom",
         message: "인증 종료일은 시작일 이후여야 합니다.",
@@ -92,10 +82,7 @@ const availabilityPeriodSchema = z
   });
 
 const coordinateSchema = (minimum: number, maximum: number) =>
-  z.preprocess(
-    trimOrNull,
-    z.union([z.null(), z.coerce.number().min(minimum).max(maximum)]),
-  );
+  z.preprocess(trimOrNull, z.union([z.null(), z.coerce.number().min(minimum).max(maximum)]));
 
 export const restaurantAdminSchema = z
   .object({

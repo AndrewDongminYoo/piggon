@@ -6,12 +6,8 @@ import { GoogleSignIn } from "@/components/auth/google-sign-in";
 
 import type { ViewerProfile, ViewerVisit } from "../queries";
 
-const ProfileForm = dynamic(() =>
-  import("./visit-form").then((module) => module.ProfileForm),
-);
-const VisitForm = dynamic(() =>
-  import("./visit-form").then((module) => module.VisitForm),
-);
+const ProfileForm = dynamic(() => import("./visit-form").then((module) => module.ProfileForm));
+const VisitForm = dynamic(() => import("./visit-form").then((module) => module.VisitForm));
 
 type VisitContributionProps = {
   currentDate: string;
@@ -34,8 +30,7 @@ export function VisitContribution({
     return (
       <div className="visit-login-callout">
         <p>
-          Google 로그인 후 방문 사진이나 공개 Instagram 게시물로 피자 발자국을
-          남길 수 있습니다.
+          Google 로그인 후 방문 사진이나 공개 Instagram 게시물로 피자 발자국을 남길 수 있습니다.
         </p>
         <GoogleSignIn nextPath={`/restaurants/${restaurantSlug}`} />
       </div>
@@ -54,8 +49,8 @@ export function VisitContribution({
   return (
     <>
       <p className="visit-form-intro">
-        {viewer.profile.displayName}님의 인증은 리워드나 자동 판정 없이 커뮤니티
-        기록으로 공개됩니다.
+        {viewer.profile.displayName}님의 인증은 리워드나 자동 판정 없이 커뮤니티 기록으로
+        공개됩니다.
       </p>
       <VisitForm
         currentDate={currentDate}

@@ -4,10 +4,7 @@ function assertTimestamp(seconds: number): void {
   }
 }
 
-export function buildYouTubeTimestampUrl(
-  videoId: string,
-  startSeconds: number | null,
-): string {
+export function buildYouTubeTimestampUrl(videoId: string, startSeconds: number | null): string {
   const url = new URL("https://www.youtube.com/watch");
   url.searchParams.set("v", videoId);
 

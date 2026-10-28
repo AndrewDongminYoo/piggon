@@ -49,11 +49,7 @@ type RestaurantAdminRow = {
   status: RestaurantFormValue["status"];
 };
 
-export default async function EditRestaurantPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function EditRestaurantPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
   const admin = createAdminClient();
@@ -94,7 +90,7 @@ export default async function EditRestaurantPage({
           ends_on,
           note
         )
-      `,
+      `
     )
     .eq("id", id)
     .maybeSingle();

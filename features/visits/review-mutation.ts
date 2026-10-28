@@ -1,5 +1,4 @@
-export type ReviewMutation =
-  { kind: "delete" } | { body: string; kind: "save"; rating: number };
+export type ReviewMutation = { kind: "delete" } | { body: string; kind: "save"; rating: number };
 
 export function getReviewMutation(input: {
   body: string | null;

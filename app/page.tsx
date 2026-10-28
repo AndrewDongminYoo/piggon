@@ -13,17 +13,10 @@ export default async function Home({ searchParams }: HomeProps) {
     timeZone: "Asia/Seoul",
     year: "numeric",
   }).format(new Date());
-  const restaurants = await listPublishedRestaurants(
-    { includeEndedPopups: true },
-    currentDate,
-  );
+  const restaurants = await listPublishedRestaurants({ includeEndedPopups: true }, currentDate);
   const initialState = parseAtlasUrlState(await searchParams);
 
   return (
-    <AtlasShell
-      currentDate={currentDate}
-      initialState={initialState}
-      restaurants={restaurants}
-    />
+    <AtlasShell currentDate={currentDate} initialState={initialState} restaurants={restaurants} />
   );
 }

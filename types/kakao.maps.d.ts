@@ -40,7 +40,7 @@ type KakaoPlaceSearchResult = {
 type KakaoPlacesService = {
   keywordSearch(
     keyword: string,
-    callback: (results: KakaoPlaceSearchResult[], status: string) => void,
+    callback: (results: KakaoPlaceSearchResult[], status: string) => void
   ): void;
 };
 
@@ -63,16 +63,8 @@ type KakaoMapsApi = {
     position: KakaoLatLng;
   }) => KakaoMarker;
   event: {
-    addListener(
-      target: KakaoMarker,
-      eventName: "dragend",
-      callback: () => void,
-    ): void;
-    removeListener(
-      target: KakaoMarker,
-      eventName: "dragend",
-      callback: () => void,
-    ): void;
+    addListener(target: KakaoMarker, eventName: "dragend", callback: () => void): void;
+    removeListener(target: KakaoMarker, eventName: "dragend", callback: () => void): void;
   };
   load(callback: () => void): void;
   services: {
