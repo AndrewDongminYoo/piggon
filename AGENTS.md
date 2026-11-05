@@ -8,7 +8,7 @@ Do not add rewards, tips, comments, automated visit verification, extra login pr
 
 ## Working conventions
 
-- Speak to the operator in Korean.
+- Speak to the user in Korean.
 - Keep code identifiers, commit messages, and technical documentation in English unless Korean copy is user-facing.
 - Make small, scoped changes that follow the nearest existing pattern.
 - Do not add dependencies when the platform, React, Next.js, or existing utilities can satisfy the requirement.
@@ -46,7 +46,7 @@ Do not add rewards, tips, comments, automated visit verification, extra login pr
 - Inspect the complete diff before staging. Keep unrelated or author-unknown edits out of commits.
 - Use conventional commits grouped by concern. Include each test with the production change it verifies.
 - Before pushing, verify the branch, remote state, staged contents, and applicable checks.
-- Do not push, create pull requests, deploy, change remote Supabase configuration, or run remote migrations unless the operator explicitly requests that action.
+- Do not push, create pull requests, deploy, change remote Supabase configuration, or run remote migrations unless the user explicitly requests that action.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
