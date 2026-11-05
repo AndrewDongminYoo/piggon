@@ -40,7 +40,7 @@ The references are implementation inputs rather than authoritative sources for r
 
 ## Initial Content Scope
 
-The initial catalog contains only the restaurants supplied by the operator in the approved source list.
+The initial catalog contains only the restaurants supplied in the approved source list.
 Each record begins as a draft until its exact location and claimed attributes have been verified.
 The supplied names, broad regions, categories, and video URLs are input evidence, but they are not sufficient by themselves to assert exact addresses, coordinates, certification numbers, award details, or current operating status.
 
