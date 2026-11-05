@@ -25,7 +25,7 @@ The code has since moved past several snippets here:
 
 - Treat `docs/specs/2026-08-10-piggon-mvp-design.md` as the product contract.
 - Keep the product explicitly unofficial until the creator approves official wording and asset use.
-- Use only the operator-supplied restaurant list for initial records, and keep unverified claims and locations in `draft` state.
+- Use only the supplied restaurant list for initial records, and keep unverified claims and locations in `draft` state.
 - Derive YouTube appearance from `restaurant_videos`; never add a duplicate feature boolean.
 - Keep certifications, awards, and availability periods structured and source-backed.
 - Treat `archived` as editorial removal from public access. An ended popup stays `published`, derives `ended` from its availability period, is hidden by the default filter, and remains discoverable when `종료된 팝업 포함` is enabled.
@@ -377,7 +377,7 @@ select results_eq(
 
 Configure `visit-evidence` as private with an 8 MiB limit and `image/jpeg`, `image/png`, and `image/webp` MIME types.
 Restrict object names to `<auth.uid()>/<restaurant-id>/<uuid>.<extension>` and owner operations through Storage RLS.
-Insert all 23 operator-supplied restaurants as `draft` rows with only the supplied name, broad region, kind, and source information.
+Insert all 23 supplied restaurants as `draft` rows with only the supplied name, broad region, kind, and source information.
 Insert the supplied direct YouTube URLs into `videos` with `metadata_fetch_state = 'pending'` and create only the restaurant-video relationships explicitly present in the approved list.
 Do not invent coordinates, exact addresses, AVPN numbers, award details, or popup dates.
 
