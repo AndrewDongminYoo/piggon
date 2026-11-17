@@ -1,6 +1,4 @@
 apikey
-Associazione
-ATTA
 AVPN
 bajinico
 behaviour
@@ -40,8 +38,6 @@ locktype
 lorris
 Marione
 messagebird
-migra
-Napoletana
 neighbours
 nspname
 objsubid
@@ -49,16 +45,11 @@ oembed
 oneshot
 openoff
 orioledb
-orno
-osteria
-Panello
-Pazzo
 pgdelta
 PIGGON
 PKCE
 plpgsql
 pooler
-Popolo
 Postg
 proname
 pronamespace
@@ -83,9 +74,7 @@ unstub
 uploaders
 upserted
 upserts
-Verace
 vfpm
-Volare
 vonage
 Vulns
 wanju

@@ -6,8 +6,8 @@ dictionaryDefinitions:
   - name: custom-dictionary
     path: ./.cspell/custom-dictionary.txt
     addWords: true
+language: en,it-IT
 dictionaries:
-  - it-IT
   - custom-dictionary
   - node
   - npm
@@ -17,4 +17,4 @@ dictionaries:
   - fonts
 words: []
 ignoreWords: []
-import: []
+import: ["@cspell/dict-it-it/cspell-ext.json"]
