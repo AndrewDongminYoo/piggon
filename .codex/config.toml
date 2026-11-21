@@ -1,0 +1,3 @@
+[permissions.personal-workspace.network]
+domains = { "piggon.vercel.app" = "allow" }
+enabled = true
