@@ -4,3 +4,8 @@ allowBuilds:
 
 overrides:
   "vite@8": ^8.3.3 # GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv, GHSA-9jrq-w75r-8gcw, GHSA-r825-w8mm-5pxw, GHSA-rq7h-c2jc-7f22, GHSA-vfpm-58rq-9qcg
+
+# With "packageManager" set, pnpm 12 otherwise writes an env document first in
+# pnpm-lock.yaml; GitHub's dependency graph reads only that first document and
+# Dependabot then sees no dependencies at all (pnpm/pnpm#13805).
+pmOnFail: ignore
