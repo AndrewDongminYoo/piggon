@@ -36,7 +36,7 @@ lint:
     - cspell@10.5.2
     - eslint@10.15.0
     - git-diff-check
-    - markdownlint@0.50.0
+    - markdownlint@0.50.1
     - osv-scanner@2.7.1
     - pinact@4.1.1!
     - prettier@3.10.1
